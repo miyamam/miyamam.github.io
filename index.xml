@@ -1,25 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title></title>
-    <link>https://github.com/miyamam/miyamam.github.io/</link>
-    <description>Recent content on </description>
+    <title>My Technical Note</title>
+    <link>http://miyamam.github.io/</link>
+    <description>Recent content on My Technical Note</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja</language>
-    <lastBuildDate>Tue, 27 Mar 2018 12:51:18 +0900</lastBuildDate>
     
-	<atom:link href="https://github.com/miyamam/miyamam.github.io/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://miyamam.github.io/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>New My Post</title>
-      <link>https://github.com/miyamam/miyamam.github.io/posts/new-my-post/</link>
-      <pubDate>Tue, 27 Mar 2018 12:51:18 +0900</pubDate>
-      
-      <guid>https://github.com/miyamam/miyamam.github.io/posts/new-my-post/</guid>
-      <description>Lorem Ipsum.
-hello world hello world2 hello! hello context にほんご</description>
-    </item>
     
   </channel>
 </rss>
