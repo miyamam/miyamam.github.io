@@ -6,54 +6,21 @@
     <description>Recent content on My Technical Note</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja</language>
-    <lastBuildDate>Sun, 28 Jan 2018 21:48:10 +0100</lastBuildDate>
+    <lastBuildDate>Wed, 28 Mar 2018 11:35:58 +0900</lastBuildDate>
     
 	<atom:link href="http://miyamam.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Code sample</title>
-      <link>http://miyamam.github.io/introduction/code/</link>
-      <pubDate>Sun, 28 Jan 2018 21:48:10 +0100</pubDate>
+      <title>Access から SQL Database にデータ移行する方法</title>
+      <link>http://miyamam.github.io/posts/sqldbaccess/</link>
+      <pubDate>Wed, 28 Mar 2018 11:35:58 +0900</pubDate>
       
-      <guid>http://miyamam.github.io/introduction/code/</guid>
-      <description>#!/usr/bin/python # This script will monitor templates folder and automatically compile nunjucks html templates on change import os import sys from datetime import datetime from subprocess import call from time import sleep try: NUNJUCKS_REPO = sys.argv[1] except IndexError: NUNJUCKS_REPO = os.getenv(&amp;#34;NUNJUCKS_REPO&amp;#34;) try: TEMPLATES_DIR = sys.argv[2] except IndexError: TEMPLATES_DIR = os.getenv(&amp;#34;TEMPLATES_DIR&amp;#34;) FILES = {} TIMER = 1 COLOUR_END = &amp;#39;\033[0m&amp;#39; COLOUR_GREEN = &amp;#39;\033[92m&amp;#39; COLOUR_BLUE = &amp;#39;\033[94m&amp;#39; def check_templates(templates_dir=TEMPLATES_DIR): file_list = os.listdir(templates_dir) for item in file_list: if item.</description>
-    </item>
-    
-    <item>
-      <title>Bora</title>
-      <link>http://miyamam.github.io/characters/bora/</link>
-      <pubDate>Sun, 28 Jan 2018 21:54:02 +0100</pubDate>
-      
-      <guid>http://miyamam.github.io/characters/bora/</guid>
-      <description>Bora Horza Gobuchul is a Changer and an operative of the Idiran Empire. Horza was one of a party of Changers allowed on Schar&amp;rsquo;s World, and for that reason is tasked by the Idirans with retrieving a Mind that had crashed to the planet. Horza is humanoid, but committed to the Idirans because he despises the Culture for its dependence on machines and what he perceives to be spiritual emptiness.</description>
-    </item>
-    
-    <item>
-      <title>Balveda</title>
-      <link>http://miyamam.github.io/characters/balveda/</link>
-      <pubDate>Sun, 28 Jan 2018 21:55:52 +0100</pubDate>
-      
-      <guid>http://miyamam.github.io/characters/balveda/</guid>
-      <description>Juboal-Rabaroansa Perosteck Alseyn Balveda dam T&amp;rsquo;seif, usually referred to as Perosteck Balveda, is an operative of the Culture assigned to track and apprehend Bora Horza Gobuchul. She works for the Special Circumstances branch of Contact, and despite being ambivalent about the methods they use, deeply believes in their objectives.</description>
-    </item>
-    
-    <item>
-      <title>Kraiklyn</title>
-      <link>http://miyamam.github.io/characters/kraiklyn/</link>
-      <pubDate>Sun, 28 Jan 2018 21:57:07 +0100</pubDate>
-      
-      <guid>http://miyamam.github.io/characters/kraiklyn/</guid>
-      <description>Kraiklyn is the captain of the Clear Air Turbulence.</description>
-    </item>
-    
-    <item>
-      <title>New My Post</title>
-      <link>http://miyamam.github.io/posts/new-my-post/</link>
-      <pubDate>Tue, 27 Mar 2018 19:19:36 +0900</pubDate>
-      
-      <guid>http://miyamam.github.io/posts/new-my-post/</guid>
-      <description>test test aaa hello world</description>
+      <guid>http://miyamam.github.io/posts/sqldbaccess/</guid>
+      <description>この記事は、Microsoft Azure Tech Advent Calendar 2017 のための記事となります。 今日は、Azure のサービスのなかで SQL Database についてのお話です。 本情報の内容（添付文書、リンク先などを含む）は、作成日時点でのものであり、予告なく変更される場合があります。
+はじめに Access から SQL Server に移行するケースは、いくつかあると聞いています。でも、折角だからオンプレの SQL Server ではなく Managed Services である SQL Database に移行して、より運用管理にかかる作業を効率化していただくのもよいと思います。この記事では、その手順についてご紹介いたします。
+手順 事前準備  移行先 SQL Database の作成 どんな方法を使ってもいいのですが、一番簡単にできるのはAzure Portal から作成する方法です。新規→ダイアログで ”SQL Database&amp;rdquo; を検索します。  ** SQL Database ** を空の状態で作成します。スクリーンショットはご参考まで。 必要に応じてサーバーファイアウォールの設定を行います。  Microsoft Access Database Engine 2016 のインストール Microsoft Access Database Engine 2016 Redistributable をダウンロードしてインストールします。
+ SQL Server インポートおよびエクスポートウィザードのインストール SQL Server インポートおよびエクスポートウィザード はSQL Server Data Tools (SSDT) もしくは SQL Server に含まれています。必要に応じてインストールします。</description>
     </item>
     
   </channel>
