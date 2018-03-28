@@ -47,5 +47,14 @@
       <description>Kraiklyn is the captain of the Clear Air Turbulence.</description>
     </item>
     
+    <item>
+      <title>New My Post</title>
+      <link>http://miyamam.github.io/posts/new-my-post/</link>
+      <pubDate>Tue, 27 Mar 2018 19:19:36 +0900</pubDate>
+      
+      <guid>http://miyamam.github.io/posts/new-my-post/</guid>
+      <description>test test aaa hello world</description>
+    </item>
+    
   </channel>
 </rss>

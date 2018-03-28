@@ -48,6 +48,11 @@
   </url>
   
   <url>
+    <loc>http://miyamam.github.io/posts/new-my-post/</loc>
+    <lastmod>2018-03-27T19:19:36+09:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://miyamam.github.io/categories/</loc>
     <priority>0</priority>
   </url>
@@ -55,6 +60,12 @@
   <url>
     <loc>http://miyamam.github.io/</loc>
     <lastmod>2018-01-28T21:48:10+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://miyamam.github.io/posts/</loc>
+    <lastmod>2018-03-27T19:19:36+09:00</lastmod>
     <priority>0</priority>
   </url>
   
