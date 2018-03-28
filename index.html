@@ -43,6 +43,8 @@
         <ul>
             
             
+                <li><a href="#vsliveshare">Visual Studio Live Share preview をつかってみる</a></li>
+            
                 <li><a href="#azurestopallvm">Azure CLI で仮想マシンを全停止する</a></li>
             
                 <li><a href="#setubmssqlcli">macOS High Sierra で mssql-cli をセットアップする方法</a></li>
@@ -128,6 +130,108 @@
 </section>
 
     
+            
+                <section class="page" id="vsliveshare">
+    <h1>
+        <a href="#vsliveshare">Visual Studio Live Share preview をつかってみる</a>
+    </h1>
+    <div class="content">
+        
+
+<h1 id="はじめに">はじめに</h1>
+
+<p>Visual Studio Live Share とは 2017年11月の Connect(); という開発者イベントで発表された、Visual Studio および Visual Studio Code を使用してペアプログラミングを遠隔の人とできる機能です。One Note のファイルを同時に編集することができる、あのイメージでソースコードを同時に編集してつくりあげることができるというのが大きな特徴です。
+お恥ずかしながら、かれこれ数ヶ月前にプライベートベータの参加通知が来てはいたのですが、業務優先度が低かったため放置しておりました&hellip;満を期して、お仕事で使うタイミングが来たのでそのセットアップの情報を備忘録がてら残しておきます。
+<strong>本情報の内容（添付文書、リンク先などを含む）は、作成日時点でのものであり、予告なく変更される場合があります</strong></p>
+
+<h1 id="実際につかってみる">実際につかってみる</h1>
+
+<h2 id="確認をした環境">確認をした環境</h2>
+
+<ul>
+<li>Visual Studio 2017 Preview (Vestion 15.6.0 Preview 5.0 on Windows 10 Enterprise 1709)以下VSと略します。</li>
+<li>Visual Studio Code (Version 1.20.1 on macOS High Sierra 10.13.3)以下Codeと略します。</li>
+</ul>
+
+<h2 id="前提環境">前提環境</h2>
+
+<p>GitHub のドキュメント<a href="https://github.com/MicrosoftDocs/live-share/blob/master/welcome/welcome-owner.md">Welcome to the Visual Studio Live Share preview!</a>に記載のあるように、利用準備としてはVSであればプレビューを使用する必要があります。
+さらに、VS、Code、それぞれエクステンションとして Live Share のプラグインをインストールする必要があります。</p>
+
+<p>下記ドキュメント引用を参考までに貼っておきます。
+&gt;Visual Studio 2017 Preview
+1. Install the latest <a href="https://www.visualstudio.com/vs/preview/">VS 2017 Preview</a> (15.6 Preview 3+) on Windows (7, 8.1, or 10).
+2. Install a supported workload. e.g. ASP.NET, .NET Core, and/or Node.js
+3. Download and install the Visual Studio Live Share extension from the marketplace.
+<a href="https://marketplace.visualstudio.com/items?itemName=MS-vsliveshare.vsls-vs">Download</a></p>
+
+<blockquote>
+<p>Visual Studio Code
+1. Install <a href="https://code.visualstudio.com/">Visual Studio Code (1.20.0+)</a> for Windows (7, 8.1, or 10) or macOS (Sierra &amp; up).
+2. Download and install the Visual Studio Live Share extension from the marketplace.
+3. Installation can take a moment, so wait for the install to complete and then reload.
+<a href="https://marketplace.visualstudio.com/items?itemName=MS-vsliveshare.vsliveshare">Download</a></p>
+</blockquote>
+
+<h2 id="vsでの手順-画面キャプチャ">VSでの手順（画面キャプチャ）</h2>
+
+<p><img src="https://qiita-image-store.s3.amazonaws.com/0/135357/8b0be5da-dc31-451c-93ea-ccc7be570bae.png" alt="無題.png" />
+<img src="https://qiita-image-store.s3.amazonaws.com/0/135357/c3e6fd87-e8d2-5440-7a24-dfa62e1dfd8d.png" alt="無題2.png" />
+<img src="https://qiita-image-store.s3.amazonaws.com/0/135357/e10d23e0-0ab2-a9da-79ab-ad5279f948eb.png" alt="無題3.png" /></p>
+
+<p>インストールが終わったら、VSを起動します。
+ツール→オプション→Live Shareを開きます。
+<img src="https://qiita-image-store.s3.amazonaws.com/0/135357/b5ec33f2-6293-6c45-ae8c-e3db1dc161ac.png" alt="無題4.png" />
+<strong>Authentication</strong> の Personalization Account をクリックすると、下記のようなLive Share Account を選択する画面が表示されます。
+私の場合、VSを会社のメールアドレスでログインして使用しており、プライベートベータの案内もそちらに来ていたのでそのアカウントを選択しています。
+<img src="https://qiita-image-store.s3.amazonaws.com/0/135357/233f515e-f642-85c4-ebac-afca006886fc.png" alt="無題5.png" /></p>
+
+<p>VS側の準備はこれで終わりです。
+設定可能な項目を、参考がてら見ていくと、Share web app on debug とあり、ホストしている側のVSのIISを共有させることも可能です。
+Connection mode も、Direct／Relay/Autoから選べるようになっているので、企業内で利用するときとかDirectのほうが便利なケースも考慮されています。</p>
+
+<h2 id="codeの準備-画面キャプチャ">Codeの準備（画面キャプチャ）</h2>
+
+<p>Code も同様に Extension を追加しておきます。
+<img width="897" alt="Screen Shot 2018-02-21 at 13.38.18.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/2130df92-09c4-be6e-f6ff-580baffff8f0.png">
+インストール後にリロードしておき、画面の下にShareという文字が表示されるようになったことを確認しておきます。</p>
+
+<h2 id="共有方法-vsからcode">共有方法（VSからCODE）</h2>
+
+<h3 id="vs">VS</h3>
+
+<p>適当なファイルを開いて、右上のログインアカウントの隣の<strong>Share</strong> をクリックします。
+<img width="376" alt="Screen Shot 2018-02-22 at 16.32.24.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/5ac4fa33-e43d-0c3a-fe67-baf38b8f5ee1.png">
+共有用のリンクが表示されるので、共有相手にこのリンクを案内します。
+<img width="1276" alt="Screen Shot 2018-02-22 at 16.32.42.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/0c02a6ea-f15c-3cda-d68e-97e80ba938dc.png"></p>
+
+<h3 id="code">CODE</h3>
+
+<p>リンクを受け取ったら、ブラウザでアクセスします。
+アクセスすると共有アカウントが要求されるので、Microsoft アカウントやサードパーティアカウントでログインします。
+私の場合、過去に MSDN 2011Ultimate で使っていた時のメールアカウントがあったのでそちらでログインしました。
+<img width="865" alt="Screen Shot 2018-02-22 at 11.50.44.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/308fa887-0b7f-4008-4fbc-e31b1f19fe97.png">
+<img width="420" alt="Screen Shot 2018-02-22 at 11.52.22.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/c56f499d-cee4-d00d-cd32-8dc4e9fa799f.png">
+<img width="444" alt="Screen Shot 2018-02-22 at 11.53.57.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/2ddd6e08-0518-0b9c-433b-fd5646ae3eff.png">
+<img width="1024" alt="Screen Shot 2018-02-22 at 11.53.41.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/7161515e-f882-6eb8-4ac7-057ce2077e64.png">
+キャプチャではうまく表せませんが、ほぼリアルタイムにソースコードが変更され、変更箇所に誰が操作しているのか表示されます。</p>
+
+<h2 id="プライベートベータへの参加方法">プライベートベータへの参加方法</h2>
+
+<p>1.すでにベータに参加している人にShareしてもらう(自分がホストになることはできません。）
+2.<a href="https://landinghub.visualstudio.com/vsliveshare">Visual Studio Live Share</a>のサイトからフォームに入力し、祈ります。（通知がきたら、ホストにもなれますよ！！！）</p>
+
+<p>GAがとっても待ち遠しい機能ですね。</p>
+
+<h2 id="参考リンク">参考リンク</h2>
+
+<p><a href="https://github.com/MicrosoftDocs/live-share/blob/master/welcome/welcome-owner.md">Welcome to the Visual Studio Live Share preview!</a>
+<a href="https://www.microsoft.com/en-us/connectevent/">Connect();</a>
+<a href="https://landinghub.visualstudio.com/vsliveshare">Visual Studio Live Share</a></p>
+
+    </div>
+</section>
+
             
                 <section class="page" id="azurestopallvm">
     <h1>

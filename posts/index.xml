@@ -6,10 +6,21 @@
     <description>Recent content in Posts on My Technical Note</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja</language>
-    <lastBuildDate>Wed, 28 Mar 2018 11:45:15 +0900</lastBuildDate>
+    <lastBuildDate>Wed, 28 Mar 2018 11:47:31 +0900</lastBuildDate>
     
 	<atom:link href="http://miyamam.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Visual Studio Live Share preview をつかってみる</title>
+      <link>http://miyamam.github.io/posts/vsliveshare/</link>
+      <pubDate>Wed, 28 Mar 2018 11:47:31 +0900</pubDate>
+      
+      <guid>http://miyamam.github.io/posts/vsliveshare/</guid>
+      <description>はじめに Visual Studio Live Share とは 2017年11月の Connect(); という開発者イベントで発表された、Visual Studio および Visual Studio Code を使用してペアプログラミングを遠隔の人とできる機能です。One Note のファイルを同時に編集することができる、あのイメージでソースコードを同時に編集してつくりあげることができるというのが大きな特徴です。 お恥ずかしながら、かれこれ数ヶ月前にプライベートベータの参加通知が来てはいたのですが、業務優先度が低かったため放置しておりました&amp;hellip;満を期して、お仕事で使うタイミングが来たのでそのセットアップの情報を備忘録がてら残しておきます。 本情報の内容（添付文書、リンク先などを含む）は、作成日時点でのものであり、予告なく変更される場合があります
+実際につかってみる 確認をした環境  Visual Studio 2017 Preview (Vestion 15.6.0 Preview 5.0 on Windows 10 Enterprise 1709)以下VSと略します。 Visual Studio Code (Version 1.20.1 on macOS High Sierra 10.13.3)以下Codeと略します。  前提環境 GitHub のドキュメントWelcome to the Visual Studio Live Share preview!に記載のあるように、利用準備としてはVSであればプレビューを使用する必要があります。 さらに、VS、Code、それぞれエクステンションとして Live Share のプラグインをインストールする必要があります。
+下記ドキュメント引用を参考までに貼っておきます。 &amp;gt;Visual Studio 2017 Preview 1. Install the latest VS 2017 Preview (15.</description>
+    </item>
     
     <item>
       <title>Azure CLI で仮想マシンを全停止する</title>
