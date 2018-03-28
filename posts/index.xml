@@ -6,10 +6,77 @@
     <description>Recent content in Posts on My Technical Note</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja</language>
-    <lastBuildDate>Wed, 28 Mar 2018 11:35:58 +0900</lastBuildDate>
+    <lastBuildDate>Wed, 28 Mar 2018 11:45:15 +0900</lastBuildDate>
     
 	<atom:link href="http://miyamam.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Azure CLI で仮想マシンを全停止する</title>
+      <link>http://miyamam.github.io/posts/azurestopallvm/</link>
+      <pubDate>Wed, 28 Mar 2018 11:45:15 +0900</pubDate>
+      
+      <guid>http://miyamam.github.io/posts/azurestopallvm/</guid>
+      <description>はじめに Azure Portal にアクセスして仮想マシンを管理していたのですが、台数が多いと起動停止だけでも手順が少し煩雑に感じられてきました。このストックでは Azure CLI 2.0 を使用してどうやったら簡単にパブリッククラウドの必要なときに必要なだけという柔軟なリソースを享受できるのかというのを目的にあれこれ試した備忘録を残しておこうと思います。 コマンド実行結果は適当にマスクしてます。 本情報の内容（添付文書、リンク先などを含む）は、作成日時点でのものであり、予告なく変更される場合があります。
+手順 事前準備 以前書いたストックで、バッチで操作可能にするためにサービスプリンシパルを作成しておきます。 Azure CLI をバッチで使用する方法
+仮想マシンのリストアップ 仮想マシンのリストアップをするためには、az vm list や az vm showコマンドレットを使用します。そのまま実行すればわかるのですが、az vm listにオプションをつけないと詳細まで含む json が結果として返されて何が何だかわかりません。実行例を貼っておきますね。
+$az vm list [ { &amp;#34;additionalProperties&amp;#34;: {}, &amp;#34;availabilitySet&amp;#34;: null, &amp;#34;diagnosticsProfile&amp;#34;: { &amp;#34;additionalProperties&amp;#34;: {}, &amp;#34;bootDiagnostics&amp;#34;: { &amp;#34;additionalProperties&amp;#34;: {}, &amp;#34;enabled&amp;#34;: true, &amp;#34;storageUri&amp;#34;: &amp;#34;https://...snip....blob.core.windows.net/&amp;#34; } }, &amp;#34;hardwareProfile&amp;#34;: { &amp;#34;additionalProperties&amp;#34;: {}, &amp;#34;vmSize&amp;#34;: &amp;#34;Standard_D2s_v3&amp;#34; }, &amp;#34;id&amp;#34;: &amp;#34;/subscriptions/...snip.../resourceGroups/ALOHA/providers/Microsoft.Compute/virtualMachines/commersonii&amp;#34;, &amp;#34;identity&amp;#34;: null, &amp;#34;instanceView&amp;#34;: null, &amp;#34;licenseType&amp;#34;: null, &amp;#34;location&amp;#34;: &amp;#34;japanwest&amp;#34;, &amp;#34;name&amp;#34;: &amp;#34;commersonii&amp;#34;, &amp;#34;networkProfile&amp;#34;: { &amp;#34;additionalProperties&amp;#34;: {}, &amp;#34;networkInterfaces&amp;#34;: [ { &amp;#34;additionalProperties&amp;#34;: {}, &amp;#34;id&amp;#34;: &amp;#34;/subscriptions/.</description>
+    </item>
+    
+    <item>
+      <title>macOS High Sierra で mssql-cli をセットアップする方法</title>
+      <link>http://miyamam.github.io/posts/setubmssqlcli/</link>
+      <pubDate>Wed, 28 Mar 2018 11:43:10 +0900</pubDate>
+      
+      <guid>http://miyamam.github.io/posts/setubmssqlcli/</guid>
+      <description>#はじめに mssql-cli とは Ignite 2017 で発表された Python ベースの SQL Server の操作用のマルチプラットフォーム対応の新しいコマンドラインツールです。 macOS High Sierra で実際に使用する方法について備忘録がてら残しておきます。
+#前提環境 - Python
+#手順 実際はこの3行をコピペ実行するだけです。
+$ sudo easy_install pip $ sudo pip install --upgrade pip $ sudo pip install mssql-cli --ignore-installed six 参考にターミナルのログを貼っておきます。
+pip のインストール Mihos-MacBook:Data miyamam$ sudo easy_install pip Password: Searching for pip Reading https://pypi.python.org/simple/pip/ Best match: pip 9.0.1 Downloading https://pypi.python.org/packages/11/b6/abcb525026a4be042b486df43905d6893fb04f05aac21c32c638e939e447/pip-9.0.1.tar.gz#md5=35f01da33009719497f01a4ba69d63c9 Processing pip-9.0.1.tar.gz Writing /tmp/easy_install-Ggi2_3/pip-9.0.1/setup.cfg Running pip-9.0.1/setup.py -q bdist_egg --dist-dir /tmp/easy_install-Ggi2_3/pip-9.0.1/egg-dist-tmp-Tirk3b /System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/distutils/dist.py:267: UserWarning: Unknown distribution option: &amp;#39;python_requires&amp;#39; warnings.</description>
+    </item>
+    
+    <item>
+      <title>macOS High Sierra で sqlcmd ユーティリティをセットアップする方法</title>
+      <link>http://miyamam.github.io/posts/setubsqlcmd/</link>
+      <pubDate>Wed, 28 Mar 2018 11:42:10 +0900</pubDate>
+      
+      <guid>http://miyamam.github.io/posts/setubsqlcmd/</guid>
+      <description>#はじめに SQL Server 2017 からマルチプラットフォーム対応になっており、macOS で利用する機会も増えていることだと思います。GUI のツールである SQL Operations Studio も提供されているのですが、コマンドラインでの利用を好まれるケースも多いと思います。 この記事では、sqlcmd ユーティリティのセットアップ方法を備忘録がてら残しておきます。
+#事前準備 macOS 環境で広く利用されているHomebrewを利用できるように設定しておきます。
+#インストール Homebrew が入ってれば Terminal でコマンド3行打つだけです。
+brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release brew update brew install --no-sandbox msodbcsql mssql-tools インストール後に、sqlcmd って打って動作確認しましょう。
+##実行例
+Mihos-MacBook:Data miyamam$ brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release Updating Homebrew... ==&amp;gt; Auto-updated Homebrew! Updated 1 tap (homebrew/core). ==&amp;gt; New Formulae amber blast field3d jdupes libtomcrypt nyx sickle zig auditbeat bwa glances kallisto mariadb-connector-odbc opencascade skafos augustus container-diff go-statik kumo mmseqs2 orocos-kdl tmux-xpanes bedops darksky-weather hlint libccd monero plank vis bioawk elektra hmmer libjwt mpir seqtk visp ==&amp;gt; Updated Formulae azure-cli ✔ consul gist khard mpv pure-ftpd statik gdbm ✔ coreutils git kibana mr pushpin streamlink python3 ✔ cp2k git-annex kitchen-sync mruby pwntools stress-ng sqlite ✔ cppcheck git-cinnabar kite mu py3cairo subversion abcm2ps cppcms git-cola knot mutt pybind11 subversion@1.</description>
+    </item>
+    
+    <item>
+      <title>vuls on Azure 簡易チュートリアル</title>
+      <link>http://miyamam.github.io/posts/vulsonazure/</link>
+      <pubDate>Wed, 28 Mar 2018 11:40:50 +0900</pubDate>
+      
+      <guid>http://miyamam.github.io/posts/vulsonazure/</guid>
+      <description>はじめに vuls ご本家のサイトを拝見すると AWS でのデプロイ方法がチュートリアルとして書かれており、Azure でも使えるツールなのにチュートリアルで特定してしまうと、誤解されてしまい Azure での利用がされないことにつながるのは少し勿体ないなと感じていました。 既に Azure 上で動作させるように確認している先駆者の方もいらっしゃるようだったので、検証作業の内容を備忘録がてら残しておきます。
+ご本家にReadmeの日本語版のプルリクエスト出すほどの内容でもないので記事としておいておきますのでご意見あればコメントお願いいたします。
+まずは vuls が入ったサーバーのローカルでのスキャンを確認しています。
+Tutorial (Azure の場合)  Tutorial: Local Scan Mode  Launch CentOS on Azure Deploy Vuls Scan localhost, Reportingv  Tutorial: Remote Scan Mode  Launch Ubuntu Linux on Azure このUbuntuを先程セットアップしたVulsからスキャンする  &amp;mdash;-   Tutorial: Local Scan Mode 本チュートリアルでは、Microsoft Azure に Vuls をセットアップし、自分に存在する脆弱性をスキャンする方法を説明する。 手順は以下の通り
+ CentOSを新規作成 必要なソフトウェアをインストール go-cve-dictionaryをデプロイ goval-dictionaryをデプロイ Vulsをデプロイ 設定 設定ファイルと、スキャン対象サーバの設定のチェック Scan Reporting TUI(Terminal-Based User Interface)で結果を参照する Web UI(VulsRepo)で結果を参照する  Step1.</description>
+    </item>
+    
+    <item>
+      <title>こじらせメーターのつくりかた</title>
+      <link>http://miyamam.github.io/posts/kojirase/</link>
+      <pubDate>Wed, 28 Mar 2018 11:38:59 +0900</pubDate>
+      
+      <guid>http://miyamam.github.io/posts/kojirase/</guid>
+      <description>#はじめに twitter でのフォロアーさんとのやりとりで、こじらせ度合いも可視化しないといけないなという話になり、どうせならハッシュタグ#kojimeter つきのツイートを数値化し、集計して可視化するものを Logic Apps で簡単につくることができたので備忘録がてら残しておきます。 （自分宛のMentionっていう条件は、修正時に外しています。）
+#概要
+利用したサービス  Cosmos DB (選定理由は後述） Cognitive Services  Text Analytics API  Logic Apps  Cosmos DB なぜ Cosmos DB を使っているのかというと、今回の用途からテーブル設計するような内容でもなく、複数のテーブルでリレーションシップを使うものではなく、単に非構造化データをストアしておきたいというだけだったからです。なお、データストアの選択については参考リンクに貼ったデータ ストアの選択条件が参考になります。
+今回は、ポータルから作成し、SQLを選びました。特に既存のシステムからの移行ではないしアプリ側（Logic Appsなのでそれすら存在しない）に特定のNoSQLの接続設定があるわけでもないためです。 Collectionも適当に作成しています。 Cognitive Services Text Analytics API 今回、悩んだのが作成時（2018年1月14日）現在ではText Analytics API のセンチメント分析は日本語をサポートしていません。
+Supported languages in Text Analytics API
+なので、対応言語に一度変換するというステップが入ります。でも、Logic Appsなら簡単にできます。ここは今後無くなるかもしれないステップということになります。 こちらもポータルから作成します。手順は迷うこと無いと思いますがSign up for the Text Analytics APIこちらと同様に作成します。（既に作ってあったので途中の画面は割愛。Logic Apps で使用するので、Show access keysからキーを参照してメモしておきます。） ##Logic Apps ポータルから作成します。こちらのドキュメントが参考になると思います。ロジック アプリでデータを処理するための初めてのワークフローの自動化 今回作った処理は下記の図のようになります。 詳細をひとつひとつ見ていくと
+###ハッシュタグつきツイートが来たら（トリガー） ###ツイート内容を英語に翻訳して ###感情を検出して 翻訳したツイート内容から感情を検出します。</description>
+    </item>
     
     <item>
       <title>Access から SQL Database にデータ移行する方法</title>

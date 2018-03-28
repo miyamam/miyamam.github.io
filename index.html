@@ -43,6 +43,16 @@
         <ul>
             
             
+                <li><a href="#azurestopallvm">Azure CLI で仮想マシンを全停止する</a></li>
+            
+                <li><a href="#setubmssqlcli">macOS High Sierra で mssql-cli をセットアップする方法</a></li>
+            
+                <li><a href="#setubsqlcmd">macOS High Sierra で sqlcmd ユーティリティをセットアップする方法</a></li>
+            
+                <li><a href="#vulsonazure">vuls on Azure 簡易チュートリアル</a></li>
+            
+                <li><a href="#kojirase">こじらせメーターのつくりかた</a></li>
+            
                 <li><a href="#sqldbaccess">Access から SQL Database にデータ移行する方法</a></li>
             
         </ul>
@@ -92,16 +102,12 @@
         <a href="#Miho%20Yamamoto">はじめに</a>
     </h1>
     <div class="content">
-        
-
-<p>このサイトは、<a href="https://qiita.com/mihochannel">Qiita</a> のアーカイブ記事として、日々のお仕事の副産物や好奇心で実施した内容の備忘録をとどめなくおいておきます。<strong>すべての情報の内容（添付文書、リンク先などを含む）は、作成日時点でのものであり、予告なく変更される場合があります</strong>
+        <p>このサイトは、<a href="https://qiita.com/mihochannel">Qiita</a> のアーカイブ記事として、日々のお仕事の副産物や好奇心で実施した内容の備忘録をとどめなくおいておきます。<strong>すべての情報の内容（添付文書、リンク先などを含む）は、作成日時点でのものであり、予告なく変更される場合があります</strong>
 画面表示が崩れる方はブラウザのスクリプト実行のプロパティを確認してください。</p>
 
-<h1 id="special-thanks">Special Thanks</h1>
-
-<p><a href="https://gohugo.io/documentation/">Hugo Documents</a></p>
-
-<p><a href="https://github.com/jsnjack/kraiklyn">Kraiklyn</a>
+<p><em>Special Thanks</em>
+<a href="https://gohugo.io/documentation/">Hugo Documents</a>
+<a href="https://github.com/jsnjack/kraiklyn">Kraiklyn</a>
 レイアウト等には下記のソフトウェアを使用させていただいています。</p>
 
     </div>
@@ -122,6 +128,959 @@
 </section>
 
     
+            
+                <section class="page" id="azurestopallvm">
+    <h1>
+        <a href="#azurestopallvm">Azure CLI で仮想マシンを全停止する</a>
+    </h1>
+    <div class="content">
+        
+
+<h1 id="はじめに">はじめに</h1>
+
+<p>Azure Portal にアクセスして仮想マシンを管理していたのですが、台数が多いと起動停止だけでも手順が少し煩雑に感じられてきました。このストックでは Azure CLI 2.0 を使用してどうやったら簡単にパブリッククラウドの必要なときに必要なだけという柔軟なリソースを享受できるのかというのを目的にあれこれ試した備忘録を残しておこうと思います。
+コマンド実行結果は適当にマスクしてます。
+<strong>本情報の内容（添付文書、リンク先などを含む）は、作成日時点でのものであり、予告なく変更される場合があります。</strong></p>
+
+<h1 id="手順">手順</h1>
+
+<h2 id="事前準備">事前準備</h2>
+
+<p>以前書いたストックで、バッチで操作可能にするためにサービスプリンシパルを作成しておきます。
+<a href="https://qiita.com/mihochannel/items/b297b07c826b631ba0ea">Azure CLI をバッチで使用する方法</a></p>
+
+<h2 id="仮想マシンのリストアップ">仮想マシンのリストアップ</h2>
+
+<p>仮想マシンのリストアップをするためには、<strong>az vm list</strong> や <strong>az vm show</strong>コマンドレットを使用します。そのまま実行すればわかるのですが、<strong>az vm list</strong>にオプションをつけないと詳細まで含む json が結果として返されて何が何だかわかりません。実行例を貼っておきますね。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#111">$az</span> vm list
+<span style="color:#f92672">[</span>
+  <span style="color:#f92672">{</span>
+    <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+    <span style="color:#d88200">&#34;availabilitySet&#34;</span>: null,
+    <span style="color:#d88200">&#34;diagnosticsProfile&#34;</span>: <span style="color:#f92672">{</span>
+      <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+      <span style="color:#d88200">&#34;bootDiagnostics&#34;</span>: <span style="color:#f92672">{</span>
+        <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+        <span style="color:#d88200">&#34;enabled&#34;</span>: true,
+        <span style="color:#d88200">&#34;storageUri&#34;</span>: <span style="color:#d88200">&#34;https://...snip....blob.core.windows.net/&#34;</span>
+      <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>,
+    <span style="color:#d88200">&#34;hardwareProfile&#34;</span>: <span style="color:#f92672">{</span>
+      <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+      <span style="color:#d88200">&#34;vmSize&#34;</span>: <span style="color:#d88200">&#34;Standard_D2s_v3&#34;</span>
+    <span style="color:#f92672">}</span>,
+    <span style="color:#d88200">&#34;id&#34;</span>: <span style="color:#d88200">&#34;/subscriptions/...snip.../resourceGroups/ALOHA/providers/Microsoft.Compute/virtualMachines/commersonii&#34;</span>,
+    <span style="color:#d88200">&#34;identity&#34;</span>: null,
+    <span style="color:#d88200">&#34;instanceView&#34;</span>: null,
+    <span style="color:#d88200">&#34;licenseType&#34;</span>: null,
+    <span style="color:#d88200">&#34;location&#34;</span>: <span style="color:#d88200">&#34;japanwest&#34;</span>,
+    <span style="color:#d88200">&#34;name&#34;</span>: <span style="color:#d88200">&#34;commersonii&#34;</span>,
+    <span style="color:#d88200">&#34;networkProfile&#34;</span>: <span style="color:#f92672">{</span>
+      <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+      <span style="color:#d88200">&#34;networkInterfaces&#34;</span>: <span style="color:#f92672">[</span>
+        <span style="color:#f92672">{</span>
+          <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+          <span style="color:#d88200">&#34;id&#34;</span>: <span style="color:#d88200">&#34;/subscriptions/...snip.../resourceGroups/Aloha/providers/Microsoft.Network/networkInterfaces/commersonii273&#34;</span>,
+          <span style="color:#d88200">&#34;primary&#34;</span>: null,
+          <span style="color:#d88200">&#34;resourceGroup&#34;</span>: <span style="color:#d88200">&#34;Aloha&#34;</span>
+        <span style="color:#f92672">}</span>
+      <span style="color:#f92672">]</span>
+    <span style="color:#f92672">}</span>,
+    <span style="color:#d88200">&#34;osProfile&#34;</span>: <span style="color:#f92672">{</span>
+      <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+      <span style="color:#d88200">&#34;adminPassword&#34;</span>: null,
+      <span style="color:#d88200">&#34;adminUsername&#34;</span>: <span style="color:#d88200">&#34;miyamam&#34;</span>,
+      <span style="color:#d88200">&#34;computerName&#34;</span>: <span style="color:#d88200">&#34;commersonii&#34;</span>,
+      <span style="color:#d88200">&#34;customData&#34;</span>: null,
+      <span style="color:#d88200">&#34;linuxConfiguration&#34;</span>: <span style="color:#f92672">{</span>
+        <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+        <span style="color:#d88200">&#34;disablePasswordAuthentication&#34;</span>: true,
+        <span style="color:#d88200">&#34;ssh&#34;</span>: <span style="color:#f92672">{</span>
+          <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+          <span style="color:#d88200">&#34;publicKeys&#34;</span>: <span style="color:#f92672">[</span>
+            <span style="color:#f92672">{</span>
+              <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+              <span style="color:#d88200">&#34;keyData&#34;</span>: <span style="color:#d88200">&#34;ssh-rsa ...snip...&#34;</span>,
+              <span style="color:#d88200">&#34;path&#34;</span>: <span style="color:#d88200">&#34;/home/miyamam/.ssh/authorized_keys&#34;</span>
+            <span style="color:#f92672">}</span>
+          <span style="color:#f92672">]</span>
+        <span style="color:#f92672">}</span>
+      <span style="color:#f92672">}</span>,
+      <span style="color:#d88200">&#34;secrets&#34;</span>: <span style="color:#f92672">[]</span>,
+      <span style="color:#d88200">&#34;windowsConfiguration&#34;</span>: null
+    <span style="color:#f92672">}</span>,
+    <span style="color:#d88200">&#34;plan&#34;</span>: null,
+    <span style="color:#d88200">&#34;provisioningState&#34;</span>: <span style="color:#d88200">&#34;Succeeded&#34;</span>,
+    <span style="color:#d88200">&#34;resourceGroup&#34;</span>: <span style="color:#d88200">&#34;ALOHA&#34;</span>,
+    <span style="color:#d88200">&#34;resources&#34;</span>: <span style="color:#f92672">[</span>
+      <span style="color:#f92672">{</span>
+        <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+        <span style="color:#d88200">&#34;autoUpgradeMinorVersion&#34;</span>: null,
+        <span style="color:#d88200">&#34;forceUpdateTag&#34;</span>: null,
+        <span style="color:#d88200">&#34;id&#34;</span>: <span style="color:#d88200">&#34;/subscriptions/...snip.../resourceGroups/ALOHA/providers/Microsoft.Compute/virtualMachines/commersonii/extensions/Microsoft.Insights.VMDiagnosticsSettings&#34;</span>,
+        <span style="color:#d88200">&#34;instanceView&#34;</span>: null,
+        <span style="color:#d88200">&#34;location&#34;</span>: null,
+        <span style="color:#d88200">&#34;name&#34;</span>: null,
+        <span style="color:#d88200">&#34;protectedSettings&#34;</span>: null,
+        <span style="color:#d88200">&#34;provisioningState&#34;</span>: null,
+        <span style="color:#d88200">&#34;publisher&#34;</span>: null,
+        <span style="color:#d88200">&#34;resourceGroup&#34;</span>: <span style="color:#d88200">&#34;ALOHA&#34;</span>,
+        <span style="color:#d88200">&#34;settings&#34;</span>: null,
+        <span style="color:#d88200">&#34;tags&#34;</span>: null,
+        <span style="color:#d88200">&#34;type&#34;</span>: null,
+        <span style="color:#d88200">&#34;typeHandlerVersion&#34;</span>: null,
+        <span style="color:#d88200">&#34;virtualMachineExtensionType&#34;</span>: null
+      <span style="color:#f92672">}</span>,
+      <span style="color:#f92672">{</span>
+        <span style="color:#d88200">&#34;additionalProperties&#34;</span>: <span style="color:#f92672">{}</span>,
+        <span style="color:#d88200">&#34;autoUpgradeMinorVersion&#34;</span>: null,
+        <span style="color:#d88200">&#34;forceUpdateTag&#34;</span>: null,
+        <span style="color:#d88200">&#34;id&#34;</span>: <span style="color:#d88200">&#34;/subscriptions/...snip.../resourceGroups/ALOHA/providers/Microsoft.Compute/virtualMachines/commersonii/extensions/OmsAgentForLinux&#34;</span>,
+        <span style="color:#d88200">&#34;instanceView&#34;</span>: null,
+        <span style="color:#d88200">&#34;location&#34;</span>: null,
+        <span style="color:#d88200">&#34;name&#34;</span>: null,
+        <span style="color:#d88200">&#34;protectedSettings&#34;</span>: null,
+        <span style="color:#d88200">&#34;provisioningState&#34;</span>: null,
+        <span style="color:#d88200">&#34;publisher&#34;</span>: null,
+        <span style="color:#d88200">&#34;resourceGroup&#34;</span>: <span style="color:#d88200">&#34;ALOHA&#34;</span>,
+        <span style="color:#d88200">&#34;settings&#34;</span>: null,
+        <span style="color:#d88200">&#34;tags&#34;</span>: null,
+        <span style="color:#d88200">&#34;type&#34;</span>: null,
+        <span style="color:#d88200">&#34;typeHandlerVersion&#34;</span>: null,
+        <span style="color:#d88200">&#34;virtualMachineExtensionType&#34;</span>: null
+      <span style="color:#f92672">}</span>
+    <span style="color:#f92672">]</span>,
+    <span style="color:#d88200">&#34;storageProfile&#34;</span>: <span style="color:#f92672">{</span>
+      <span style="color:#d88200">&#34;additionalProper
+</span><span style="color:#d88200">#...snip...</span></code></pre></div>
+<p>結局ほしいのは、<strong>リソースグループ</strong>と<strong>仮想マシン名</strong>だけなので、タブ区切りでもらうと下記のように指定します。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#111">$az</span> vm list --query <span style="color:#d88200">&#34;[].[name, resourceGroup]&#34;</span> --output tsv 
+commersonii	ALOHA
+dolphin	ALOHA
+Hawaii	ALOHA
+Manta	ALOHA
+Naia	ALOHA
+Oahu	ALOHA</code></pre></div>
+<h2 id="ステータスチェック">ステータスチェック</h2>
+
+<p>ステータスチェックするコマンドは<strong>az vm get-instance-view</strong> コマンドを使用します。こちらもそのままだと使い勝手が悪いので、ステータスだけを取得するように書くと下記のようになります。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#111">$az</span> vm get-instance-view -g <span style="color:#111">$rgname</span> -n <span style="color:#111">$vmname</span> --query instanceView.statuses<span style="color:#f92672">[</span><span style="color:#ae81ff">1</span><span style="color:#f92672">]</span>.displayStatus --output tsv</code></pre></div>
+<h2 id="起動-停止処理の条件">起動、停止処理の条件</h2>
+
+<p><strong>az vm stop</strong> と <strong>az vm start</strong>コマンドレットを使いますが、引数は先ほど取得した仮想マシン名とリソースグループ名です。
+起動用シェル等にする場合は、オプションで<strong>&ndash;no-wait</strong>をつけてもよいと思います。
+これを配列分まわすと下記のような感じになります。
+<strong>気づいたのですが課金対策に使用する場合は、割り当て解除する必要があります。</strong>
+<strong>az vm stop</strong> のかわりに <strong>az vm deallocate</strong>を使用しましょう。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">az login --service-principal --username ...snip... --password ...snip... --tenant ...snip...
+
+az vm list --query <span style="color:#d88200">&#34;[].[name, resourceGroup]&#34;</span> --output tsv <span style="color:#111">|</span> <span style="color:#00a8c8">while</span> <span style="color:#111">read</span> line
+    <span style="color:#00a8c8">do</span>
+        <span style="color:#111">set</span> -- <span style="color:#111">$line</span>
+        <span style="color:#111">vmname</span><span style="color:#f92672">=</span><span style="color:#111">$1</span>
+        <span style="color:#111">rgname</span><span style="color:#f92672">=</span><span style="color:#111">$2</span>
+
+        <span style="color:#111">vmstatus</span><span style="color:#f92672">=</span><span style="color:#d88200">`</span>az vm get-instance-view -g <span style="color:#111">$rgname</span> -n <span style="color:#111">$vmname</span> --query instanceView.statuses<span style="color:#f92672">[</span><span style="color:#ae81ff">1</span><span style="color:#f92672">]</span>.displayStatus --output tsv<span style="color:#d88200">`</span>
+
+        <span style="color:#00a8c8">if</span> <span style="color:#f92672">[</span> <span style="color:#d88200">&#34;</span><span style="color:#111">$vmstatus</span><span style="color:#d88200">&#34;</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#34;VM stopped&#34;</span> <span style="color:#f92672">]</span>
+        <span style="color:#00a8c8">then</span>
+            <span style="color:#111">echo</span> <span style="color:#111">$vmname</span> <span style="color:#d88200">&#34;is starting&#34;</span>
+            az vm start -n <span style="color:#111">$vmname</span> -g <span style="color:#111">$rgname</span>
+        <span style="color:#00a8c8">else</span>
+            <span style="color:#111">echo</span> <span style="color:#111">$vmname</span> <span style="color:#111">$vmstatus</span>
+        <span style="color:#00a8c8">fi</span>
+    <span style="color:#00a8c8">done</span></code></pre></div>
+<p>開発環境等の使ってるときだけ起動したいケースでは、スクリプトに起動停止を書いておくことで柔軟な利用ができると思います。私の場合、ずっと稼働させておく必要がないVMばかりだったので全停止にしてますが、除外を加えるとか特定のリソースグループのみを対象にしてもよいと思います。
+GUIが好き？ということであれば<a href="https://azure.microsoft.com/ja-jp/services/devtest-lab/">Azure DevTest Labs</a>のご利用もご検討されてみてはいかがでしょうか。</p>
+
+<h1 id="参考資料">参考資料</h1>
+
+<p><a href="https://qiita.com/mihochannel/items/b297b07c826b631ba0ea">Azure CLI をバッチで使用する方法</a>
+<a href="https://docs.microsoft.com/en-us/cli/azure/overview?view=azure-cli-latest">Azure CLI 2.0</a>
+<a href="https://docs.microsoft.com/en-us/cli/azure/query-azure-cli?view=azure-cli-latest">Use JMESPath queries with Azure CLI 2.0</a></p>
+
+    </div>
+</section>
+
+            
+                <section class="page" id="setubmssqlcli">
+    <h1>
+        <a href="#setubmssqlcli">macOS High Sierra で mssql-cli をセットアップする方法</a>
+    </h1>
+    <div class="content">
+        
+
+<p>#はじめに
+<a href="https://github.com/dbcli/mssql-cli">mssql-cli</a> とは <a href="https://www.microsoft.com/en-us/ignite/default.aspx">Ignite 2017</a> で発表された Python ベースの SQL Server の操作用のマルチプラットフォーム対応の新しいコマンドラインツールです。
+macOS High Sierra で実際に使用する方法について備忘録がてら残しておきます。</p>
+
+<p>#前提環境
+- Python</p>
+
+<p>#手順
+実際はこの3行をコピペ実行するだけです。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo easy_install pip
+$ sudo pip install --upgrade pip
+$ sudo pip install mssql-cli --ignore-installed six</code></pre></div>
+<p>参考にターミナルのログを貼っておきます。</p>
+
+<h2 id="pip-のインストール">pip のインストール</h2>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Mihos-MacBook:Data miyamam$ sudo easy_install pip
+Password:
+Searching <span style="color:#00a8c8">for</span> pip
+Reading https://pypi.python.org/simple/pip/
+Best match: pip <span style="color:#ae81ff">9</span>.0.1
+Downloading https://pypi.python.org/packages/11/b6/abcb525026a4be042b486df43905d6893fb04f05aac21c32c638e939e447/pip-9.0.1.tar.gz#md5<span style="color:#f92672">=</span>35f01da33009719497f01a4ba69d63c9
+Processing pip-9.0.1.tar.gz
+Writing /tmp/easy_install-Ggi2_3/pip-9.0.1/setup.cfg
+Running pip-9.0.1/setup.py -q bdist_egg --dist-dir /tmp/easy_install-Ggi2_3/pip-9.0.1/egg-dist-tmp-Tirk3b
+/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/distutils/dist.py:267: UserWarning: Unknown distribution option: <span style="color:#d88200">&#39;python_requires&#39;</span>
+  warnings.warn<span style="color:#f92672">(</span>msg<span style="color:#f92672">)</span>
+warning: no previously-included files found matching <span style="color:#d88200">&#39;.coveragerc&#39;</span>
+warning: no previously-included files found matching <span style="color:#d88200">&#39;.mailmap&#39;</span>
+warning: no previously-included files found matching <span style="color:#d88200">&#39;.travis.yml&#39;</span>
+warning: no previously-included files found matching <span style="color:#d88200">&#39;.landscape.yml&#39;</span>
+warning: no previously-included files found matching <span style="color:#d88200">&#39;pip/_vendor/Makefile&#39;</span>
+warning: no previously-included files found matching <span style="color:#d88200">&#39;tox.ini&#39;</span>
+warning: no previously-included files found matching <span style="color:#d88200">&#39;dev-requirements.txt&#39;</span>
+warning: no previously-included files found matching <span style="color:#d88200">&#39;appveyor.yml&#39;</span>
+no previously-included directories found matching <span style="color:#d88200">&#39;.github&#39;</span>
+no previously-included directories found matching <span style="color:#d88200">&#39;.travis&#39;</span>
+no previously-included directories found matching <span style="color:#d88200">&#39;docs/_build&#39;</span>
+no previously-included directories found matching <span style="color:#d88200">&#39;contrib&#39;</span>
+no previously-included directories found matching <span style="color:#d88200">&#39;tasks&#39;</span>
+no previously-included directories found matching <span style="color:#d88200">&#39;tests&#39;</span>
+creating /Library/Python/2.7/site-packages/pip-9.0.1-py2.7.egg
+Extracting pip-9.0.1-py2.7.egg to /Library/Python/2.7/site-packages
+Adding pip <span style="color:#ae81ff">9</span>.0.1 to easy-install.pth file
+Installing pip script to /usr/local/bin
+Installing pip2.7 script to /usr/local/bin
+Installing pip2 script to /usr/local/bin
+
+Installed /Library/Python/2.7/site-packages/pip-9.0.1-py2.7.egg
+Processing dependencies <span style="color:#00a8c8">for</span> pip
+Finished processing dependencies <span style="color:#00a8c8">for</span> pip</code></pre></div>
+<h2 id="pip-のアップデート">pip のアップデート</h2>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Mihos-MacBook:Data miyamam$ sudo pip install --upgrade pip
+The directory <span style="color:#d88200">&#39;/Users/miyamam/Library/Caches/pip/http&#39;</span> or its parent directory is not owned by the current user and the cache has been disabled. Please check the permissions and owner of that directory. If executing pip with sudo, you may want sudo<span style="color:#d88200">&#39;s -H flag.
+</span><span style="color:#d88200">The directory &#39;</span>/Users/miyamam/Library/Caches/pip<span style="color:#d88200">&#39; or its parent directory is not owned by the current user and caching wheels has been disabled. check the permissions and owner of that directory. If executing pip with sudo, you may want sudo&#39;</span>s -H flag.
+Requirement already up-to-date: pip in /Library/Python/2.7/site-packages/pip-9.0.1-py2.7.egg</code></pre></div>
+<h2 id="mssql-cli-のインストール">mssql-cli のインストール</h2>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Mihos-MacBook:Data miyamam$ sudo pip install mssql-cli --ignore-installed six
+The directory <span style="color:#d88200">&#39;/Users/miyamam/Library/Caches/pip/http&#39;</span> or its parent directory is not owned by the current user and the cache has been disabled. Please check the permissions and owner of that directory. If executing pip with sudo, you may want sudo<span style="color:#d88200">&#39;s -H flag.
+</span><span style="color:#d88200">The directory &#39;</span>/Users/miyamam/Library/Caches/pip<span style="color:#d88200">&#39; or its parent directory is not owned by the current user and caching wheels has been disabled. check the permissions and owner of that directory. If executing pip with sudo, you may want sudo&#39;</span>s -H flag.
+Collecting mssql-cli
+  Downloading mssql_cli-0.9.0-py2.py3-none-macosx_10_11_intel.whl <span style="color:#f92672">(</span><span style="color:#ae81ff">33</span>.2MB<span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">100</span>% <span style="color:#111">|</span>████████████████████████████████<span style="color:#111">|</span> <span style="color:#ae81ff">33</span>.2MB 39kB/s 
+Collecting six
+  Downloading six-1.11.0-py2.py3-none-any.whl
+Collecting Pygments&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>.0 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading Pygments-2.2.0-py2.py3-none-any.whl <span style="color:#f92672">(</span>841kB<span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">100</span>% <span style="color:#111">|</span>████████████████████████████████<span style="color:#111">|</span> 849kB <span style="color:#ae81ff">1</span>.5MB/s 
+Collecting humanize&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.5.1 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading humanize-0.5.1.tar.gz
+Collecting cli-helpers&lt;<span style="color:#ae81ff">1</span>.0.0,&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.2.3 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading cli_helpers-0.2.3-py2.py3-none-any.whl
+Collecting prompt-toolkit&lt;<span style="color:#ae81ff">1</span>.1.0,&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.0.10 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading prompt_toolkit-1.0.15-py2-none-any.whl <span style="color:#f92672">(</span>247kB<span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">100</span>% <span style="color:#111">|</span>████████████████████████████████<span style="color:#111">|</span> 256kB <span style="color:#ae81ff">2</span>.0MB/s 
+Collecting click&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>.1 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading click-6.7-py2.py3-none-any.whl <span style="color:#f92672">(</span>71kB<span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">100</span>% <span style="color:#111">|</span>████████████████████████████████<span style="color:#111">|</span> 71kB <span style="color:#ae81ff">2</span>.6MB/s 
+Collecting wheel&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.29.0 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading wheel-0.30.0-py2.py3-none-any.whl <span style="color:#f92672">(</span>49kB<span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">100</span>% <span style="color:#111">|</span>████████████████████████████████<span style="color:#111">|</span> 51kB <span style="color:#ae81ff">4</span>.7MB/s 
+Collecting sqlparse&lt;<span style="color:#ae81ff">0</span>.3.0,&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.2.2 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading sqlparse-0.2.4-py2.py3-none-any.whl
+Collecting future&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.16.0 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading future-0.16.0.tar.gz <span style="color:#f92672">(</span>824kB<span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">100</span>% <span style="color:#111">|</span>████████████████████████████████<span style="color:#111">|</span> 829kB <span style="color:#ae81ff">1</span>.3MB/s 
+Collecting configobj&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>.0.6 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading configobj-5.0.6.tar.gz
+Collecting applicationinsights&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.11.1 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading applicationinsights-0.11.1.tar.gz <span style="color:#f92672">(</span>44kB<span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">100</span>% <span style="color:#111">|</span>████████████████████████████████<span style="color:#111">|</span> 51kB <span style="color:#ae81ff">3</span>.6MB/s 
+Collecting enum34&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.1.6 <span style="color:#f92672">(</span>from mssql-cli<span style="color:#f92672">)</span>
+  Downloading enum34-1.1.6-py2-none-any.whl
+Collecting terminaltables&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>.0.0 <span style="color:#f92672">(</span>from cli-helpers&lt;<span style="color:#ae81ff">1</span>.0.0,&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.2.3-&gt;mssql-cli<span style="color:#f92672">)</span>
+  Downloading terminaltables-3.1.0.tar.gz
+Collecting backports.csv&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.0.0 <span style="color:#f92672">(</span>from cli-helpers&lt;<span style="color:#ae81ff">1</span>.0.0,&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.2.3-&gt;mssql-cli<span style="color:#f92672">)</span>
+  Downloading backports.csv-1.0.5-py2.py3-none-any.whl
+Collecting wcwidth <span style="color:#f92672">(</span>from prompt-toolkit&lt;<span style="color:#ae81ff">1</span>.1.0,&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.0.10-&gt;mssql-cli<span style="color:#f92672">)</span>
+  Downloading wcwidth-0.1.7-py2.py3-none-any.whl
+Installing collected packages: Pygments, humanize, terminaltables, backports.csv, cli-helpers, wcwidth, six, prompt-toolkit, click, wheel, sqlparse, future, configobj, applicationinsights, enum34, mssql-cli
+  Running setup.py install <span style="color:#00a8c8">for</span> humanize ... <span style="color:#00a8c8">done</span>
+  Running setup.py install <span style="color:#00a8c8">for</span> terminaltables ... <span style="color:#00a8c8">done</span>
+  Running setup.py install <span style="color:#00a8c8">for</span> future ... <span style="color:#00a8c8">done</span>
+  Running setup.py install <span style="color:#00a8c8">for</span> configobj ... <span style="color:#00a8c8">done</span>
+  Running setup.py install <span style="color:#00a8c8">for</span> applicationinsights ... <span style="color:#00a8c8">done</span>
+Successfully installed Pygments-2.2.0 applicationinsights-0.11.1 backports.csv-1.0.5 cli-helpers-0.2.3 click-6.7 configobj-5.0.6 enum34-1.1.6 future-0.16.0 humanize-0.5.1 mssql-cli-0.9.0 prompt-toolkit-1.0.15 six-1.11.0 sqlparse-0.2.4 terminaltables-3.1.0 wcwidth-0.1.7 wheel-0.30.0</code></pre></div>
+<p>#参考資料
+- <a href="https://github.com/dbcli/mssql-cli">mssql-cli</a>
+- <a href="https://github.com/dbcli/mssql-cli/blob/master/doc/installation_guide.md">Installation Guide</a></p>
+
+    </div>
+</section>
+
+            
+                <section class="page" id="setubsqlcmd">
+    <h1>
+        <a href="#setubsqlcmd">macOS High Sierra で sqlcmd ユーティリティをセットアップする方法</a>
+    </h1>
+    <div class="content">
+        <p>#はじめに
+SQL Server 2017 からマルチプラットフォーム対応になっており、macOS で利用する機会も増えていることだと思います。GUI のツールである <a href="https://docs.microsoft.com/ja-jp/sql/sql-operations-studio/what-is">SQL Operations Studio</a> も提供されているのですが、コマンドラインでの利用を好まれるケースも多いと思います。
+この記事では、sqlcmd ユーティリティのセットアップ方法を備忘録がてら残しておきます。</p>
+
+<p>#事前準備
+macOS 環境で広く利用されている<a href="https://brew.sh/index_ja.html">Homebrew</a>を利用できるように設定しておきます。</p>
+
+<p>#インストール
+Homebrew が入ってれば Terminal でコマンド3行打つだけです。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
+brew update
+brew install --no-sandbox msodbcsql mssql-tools</code></pre></div>
+<p>インストール後に、<strong>sqlcmd</strong> って打って動作確認しましょう。</p>
+
+<p>##実行例</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Mihos-MacBook:Data miyamam$ brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
+Updating Homebrew...
+<span style="color:#f92672">==</span>&gt; Auto-updated Homebrew!
+Updated <span style="color:#ae81ff">1</span> tap <span style="color:#f92672">(</span>homebrew/core<span style="color:#f92672">)</span>.
+<span style="color:#f92672">==</span>&gt; New Formulae
+amber                     blast                     field3d                   jdupes                    libtomcrypt               nyx                       sickle                    zig
+auditbeat                 bwa                       glances                   kallisto                  mariadb-connector-odbc    opencascade               skafos
+augustus                  container-diff            go-statik                 kumo                      mmseqs2                   orocos-kdl                tmux-xpanes
+bedops                    darksky-weather           hlint                     libccd                    monero                    plank                     vis
+bioawk                    elektra                   hmmer                     libjwt                    mpir                      seqtk                     <span style="color:#111">visp</span>
+<span style="color:#f92672">==</span>&gt; Updated Formulae
+azure-cli ✔                  consul                       gist                         khard                        mpv                          pure-ftpd                    statik
+gdbm ✔                       coreutils                    git                          kibana                       mr                           pushpin                      streamlink
+python3 ✔                    cp2k                         git-annex                    kitchen-sync                 mruby                        pwntools                     stress-ng
+sqlite ✔                     cppcheck                     git-cinnabar                 kite                         mu                           py3cairo                     subversion
+abcm2ps                      cppcms                       git-cola                     knot                         mutt                         pybind11                     subversion@1.8
+abcmidi                      cracklib                     git-ftp                      knot-resolver                mycli                        pyenv                        suite-sparse
+abyss                        creduce                      git-integration              kobalt                       mypy                         pygobject                    sundials
+acmetool                     cromwell                     git-remote-hg                kompose                      mysql                        pygobject3                   superlu
+acpica                       crosstool-ng                 git-secret                   konoha                       mysql++                      pypy                         svgcleaner
+agda                         crowdin                      git-town                     kontena                      mysql-connector-c++          pypy3                        svtplay-dl
+algernon                     cryfs                        gitbucket                    kotlin                       mysql-sandbox                pyqt                         swagger-codegen
+amazon-ecs-cli               cryptopp                     gitlab-runner                kpcli                        mysql@5.5                    python                       swi-prolog
+angular-cli                  crystal-icr                  gjs                          kubeless                     mysql@5.6                    pytouhou                     swiftformat
+ansible                      crystal-lang                 glib                         kubernetes-cli               mytop                        qca                          swiftlint
+ansible-lint                 csvkit                       gmsh                         kubernetes-helm              nagios-plugins               qd                           sword
+antigen                      csvtomd                      gmt                          lame                         nano                         qpdf                         sync_gateway
+apache-arrow                 ctop                         gmt@4                        lammps                       nco                          qpid-proton                  syncthing
+apache-opennlp               curl                         gnome-builder                languagetool                 ncurses                      qrupdate                     sysbench
+apache-spark                 czmq                         gnome-doc-utils              lapack                       neko                         qscintilla2                  sysdig
+apibuilder-cli               datetime-fortran             gnome-recipes                lbdb                         nesc                         qt                           taisei
+apktool                      datomic                      gnu-smalltalk                lcm                          net-snmp                     qt@5.7                       taktuk
+apm-server                   davmail                      gnumeric                     ldc                          netcdf                       quex                         talloc
+app-engine-go-64             dbhash                       gnupg@2.0                    ldns                         newsboat                     quicktype                    tcl-tk
+app-engine-java              dcm2niix                     gnutls                       leaps                        nghttp2                      r                            tclap
+arangodb                     dcos-cli                     go                           ledger                       ngrep                        rabbitmq                     telegraf
+argon2                       ddgr                         gobuster                     lensfun                      nifi                         radare2                      teleport
+argyll-cms                   debianutils                  godep                        leptonica                    nikto                        rancher-cli                  termius
+armadillo                    dehydrated                   goenv                        libcddb                      nnn                          ranger                       terraform
+armor                        dep                          goffice                      libcdio                      node                         ratfor                       terraform_landscape
+arpack                       dependency-check             gollum                       libcds                       node-build                   rbenv-aliases                terragrunt
+artifactory                  devd                         gom                          libconfig                    node@6                       rbenv-binstubs               texmath
+asciinema                    dhall-json                   goofys                       libdvdcss                    node@8                       rbenv-bundle-exec            thefuck
+asdf                         diamond                      googler                      libdvdnav                    noti                         rbenv-bundler                thrift
+astyle                       diff-so-fancy                gopass                       libdvdread                   notmuch                      rbenv-bundler-ruby-version   thrift@0.9
+ats2-postiats                diffoscope                   gpg-agent                    libebur128                   nrpe                         rbenv-chefdk                 tig
+augeas                       digdag                       gradle                       libgetdata                   nspr                         rbenv-communal-gems          tile38
+autogen                      ditaa                        gradle-completion            libgig                       nss                          rbenv-ctags                  tin
+aws-elasticbeanstalk         django-completion            graphicsmagick               libgit2-glib                 numpy                        rbenv-default-gems           tintin
+aws-sdk-cpp                  dlib                         grc                          libgosu                      nuxeo                        rbenv-gemset                 tippecanoe
+awscli                       dmd                          grib-api                     libhttpseverywhere           nvc                          rbenv-use                    tnef
+babl                         dnscrypt-proxy               gromacs                      libjson-rpc-cpp              octave                       rbenv-vars                   todoman
+backupninja                  docfx                        gron                         liblunar                     offlineimap                  rbenv-whatis                 tokei
+bam                          docker                       groonga                      libmagic                     ola                          re2                          tomcat
+bandcamp-dl                  docker-completion            grpc                         libmaxminddb                 oniguruma                    recutils                     tomcat-native
+baresip                      docker-gen                   gsoap                        libmonome                    onioncat                     redis                        tor
+bartycrouch                  docker-machine-nfs           gst-plugins-bad              libmpc                       ooniprobe                    redland                      tracebox
+basex                        doxygen                      gst-plugins-base             libmspub                     open-babel                   restic                       traefik
+bash-preexec                 doxymacs                     gst-python                   libpagemaker                 open-mpi                     rex                          trafficserver
+bash-snippets                dpkg                         gtk+                         libphonenumber               openblas                     rgbds                        transmission
+bdw-gc                       dscanner                     guile                        libpqxx                      opencoarrays                 riemann                      travis
+bear                         dssim                        guile@2.0                    libpst                       opencolorio                  rocksdb                      ttf2eot
+beast                        dub                          gutenberg                    libqalculate                 opencv                       rom-tools                    ttfautohint
+bench                        duck                         gwt                          libraw                       opencv@2                     root                         ttyd
+bento4                       dungeon                      gwyddion                     libre                        openrtsp                     roswell                      twoping
+bettercap                    duplicity                    gxml                         librealsense                 openshift-cli                rpm                          twtxt
+betty                        e2fsprogs                    gzip                         librsvg                      openssl@1.1                  rsync                        txr
+binaryen                     ecl                          hadolint                     libsass                      openttd                      rtags                        u-boot-tools
+<span style="color:#111">bind</span>                         ejabberd                     haproxy                      libsigsegv                   orc-tools                    rtv                          unbound
+binutils                     elasticsearch                hashpump                     libsoup                      oscats                       ruby                         unixodbc
+binwalk                      elixir                       haste-client                 libstfl                      osm2pgrouting                ruby-build                   urh
+biogeme                      elvish                       hdf5                         libtasn1                     osm2pgsql                    ruby@1.9                     urweb
+bit                          emscripten                   hdf5@1.8                     libtensorflow                osquery                      ruby@2.0                     v8
+bitcoin                      encfs                        heartbeat                    libtiff                      overmind                     ruby@2.1                     vala
+bitrise                      enchant                      henplus                      libtorrent-rasterbar         owfs                         ruby@2.2                     vapoursynth
+blackbox                     entr                         heroku                       libu2f-server                packetbeat                   ruby@2.3                     vault
+blastem                      envconsul                    hexgui                       libuv                        packmol                      rust                         vcdimager
+boost-mpi                    ephemeralpg                  hg-fast-export               libvirt                      paket                        rustup-init                  vdirsyncer
+boost-python                 eralchemy                    hg-flow                      libvoikko                    pandoc                       s-search                     veclibfort
+boost-python@1.59            etcd                         hh                           libvpx                       pandoc-citeproc              s6                           verilator
+boost@1.55                   etsh                         highlight                    libxc                        pandoc-crossref              sagittarius-scheme           vim
+boost@1.57                   exim                         hledger                      libzdb                       par2                         saldl                        vim@7.4
+boost@1.59                   exomizer                     homebank                     link-grammar                 parallel                     samtools                     vips
+boost@1.60                   exploitdb                    htop                         linkerd                      pari                         sassc                        voltdb
+bork                         faas-cli                     htslib                       liquigraph                   pass                         sbcl                         vte
+botan                        fabio                        http-server                  little-cms                   passpie                      sbt                          vtk
+bowtie2                      fades                        httpd                        llnode                       pdal                         scalapack                    vultr
+braid                        fail2ban                     httpie                       llvm                         pdf2htmlex                   sccache                      w-calc
+bsponmpi                     fb-client                    hugo                         llvm@3.9                     pdns                         scipy                        w3m
+btfs                         fd                           hwloc                        llvm@4                       pdnsrec                      scummvm                      watson
+bubbros                      fdclone                      hydra                        logstash                     pegtl                        scummvm-tools                weboob
+buku                         fdroidserver                 hyperscan                    logtalk                      percona-server               selecta                      websocketd
+bzt                          feh                          hypre                        lwtools                      percona-toolkit              serialosc                    weechat
+cake                         fftw                         ib                           lynis                        percona-xtrabackup           serveit                      wget
+calabash                     fibjs                        ibex                         lysp                         pex                          sfcgal                       whatmp3
+cargo-completion             filebeat                     ice                          lz4                          pg_top                       shadowsocks-libev            whohas
+cask                         firebase-cli                 idnits                       macosvpn                     pgloader                     shairport-sync               whois
+cayley                       flatcc                       idris                        macvim                       pgplot                       shfmt                        wiggle
+ccache                       flow                         igv                          magic-wormhole               pgpool-ii                    shmcat                       wine
+ccm                          fluid-synth                  imagemagick                  mame                         pgrouting                    shocco                       wireshark
+ceres-solver                 fn                           imagemagick@6                mapnik                       pianod                       shunit2                      wpscan
+certbot                      fobis                        imagesnap                    mariadb                      picard-tools                 shyaml                       writerperfect
+cfengine                     folly                        immortal                     mariadb-connector-c          pick                         silk                         wrk
+cfr-decompiler               fonttools                    innotop                      mat                          picocom                      simgrid                      wtf
+cgal                         format-udf                   inspircd                     mdp                          pigz                         sip                          wwwoffle
+cgrep                        fox                          io                           mercurial                    pilosa                       sjk                          wxpython
+chakra                       freeciv                      ipython                      meson                        pipenv                       smlnj                        x3270
+chamber                      freeradius-server            ipython@5                    mesos                        pius                         snakemake                    xapian
+charm-tools                  freeswitch                   iron-functions               metricbeat                   planck                       snapcraft                    xcenv
+check_postgres               freetds                      irssi                        micro                        plantuml                     snappystream                 xml-tooling-c
+checkstyle                   freetype                     iso-codes                    micropython                  platformio                   snapraid                     xmrig
+chisel                       frugal                       jags                         mikutter                     plplot                       sngrep                       xonsh
+chromaprint                  fwup                         jenkins                      miller                       pmd                          snort                        xtensor
+chromedriver                 gammu                        jenkins-job-builder          mingw-w64                    pngquant                     socat                        xvid
+chronograf                   gauge                        jenkins-lts                  minio-mc                     poco                         solr                         xxhash
+chuck                        gawk                         jetty                        minizinc                     pod2man                      sonarqube                    yaf
+cimg                         gcc                          jetty-runner                 mitmproxy                    ponyc                        sops                         yara
+citus                        gcc@4.9                      jfrog-cli-go                 mksh                         ponysay                      sourcery                     yaze-ag
+clamav                       gcc@5                        jhiccup                      mkvtoolnix                   postgis                      spades                       yeti
+clipper                      gcc@6                        jhipster                     mlt                          postgres-xc                  spdlog                       ykpers
+clojure                      gdal                         jing-trang                   moco                         postgresql                   speech-tools                 you-get
+cloog                        gdcm                         joe                          modules                      postgresql@9.4               sphinx                       youtube-dl
+closure-compiler             gearman                      joplin                       molecule                     postgresql@9.5               sphinx-doc                   z3
+cmake                        geeqie                       json-fortran                 monetdb                      postgresql@9.6               spigot                       zabbix
+cmark                        gegl                         jsvc                         mongo-c-driver               postgrest                    spin                         zero-install
+cmark-gfm                    geoip                        juju                         mongodb                      povray                       sql-translator               zile
+cockroach                    geoserver                    juju-wait                    monitoring-plugins           pre-commit                   sqldiff                      zimg
+cocoapods                    get-flash-videos             jump                         moreutils                    presto                       sqlite-analyzer              znc
+coffeescript                 get_iplayer                  just                         mp3gain                      prometheus                   sqlmap                       zookeeper
+collectd                     gexiv2                       kafka                        mpd                          proof-general                ssh-audit                    zplug
+collector-sidecar            ghi                          karn                         mpfi                         protobuf                     sslh                         zpython
+compcert                     gifsicle                     kedge                        mpfr                         protobuf@2.5                 sslscan                      zsh
+conan                        gifski                       keepassc                     mpich                        pspg                         sslsplit                     zsh-lovers
+conjure-up                   gimme                        khal                         mplayershell                 psqlodbc                     <span style="color:#111">sslyze</span>
+<span style="color:#f92672">==</span>&gt; Renamed Formulae
+camlistore -&gt; <span style="color:#111">perkeep</span>
+<span style="color:#f92672">==</span>&gt; Deleted Formulae
+antlr@3                           docker@1.71                       gst-plugins-base@0.10             kubernetes-cli@1.3                moodbar                           selenium-server-standalone@2.45
+apache-spark@1.5                  eigen@3.2                         gst-plugins-good@0.10             laszip@2                          mpfr@2                            srtp@1.6
+apache-spark@1.6                  gcc@4.6                           gst-plugins-ugly@0.10             ledger@2.6                        mvptree                           stklos
+autoconf@2.64                     gcc@4.7                           gstreamer@0.10                    libmpc@0.8                        open-mpi@1.6                      swig@2
+automake@1.12                     gcc@4.8                           influxdb@0.8                      libpng@1.2                        otto                              talk-filters
+azure-cli@1                       glfw@2                            isl@0.11                          libpqxx@3                         pcap_dnsproxy                     unison@2.40
+bazel@0.2                         gmp@4                             isl@0.12                          libxml2@2.7                       percona-server@5.5                zeromq@3.2
+clang-format@3.8                  go@1.5                            isl@0.14                          litmus                            perl@5.14                         zeromq@4.0
+cloog@0.15                        grails@2.5                        jetty@8                           logstash@2.4                      pond                              zeromq@4.1
+cloudbees-sdk                     gsl@1                             jpeg@6                            logstash@5.6                      ppl@0.11
+docker@1.11                       gst-plugins-bad@0.10              juju@1.25                         mg3a                              redis@2.6
+
+<span style="color:#f92672">==</span>&gt; Tapping microsoft/mssql-release
+Cloning into <span style="color:#d88200">&#39;/usr/local/Homebrew/Library/Taps/microsoft/homebrew-mssql-release&#39;</span>...
+remote: Counting objects: <span style="color:#ae81ff">8</span>, <span style="color:#00a8c8">done</span>.
+remote: Compressing objects: <span style="color:#ae81ff">100</span>% <span style="color:#f92672">(</span><span style="color:#ae81ff">6</span>/6<span style="color:#f92672">)</span>, <span style="color:#00a8c8">done</span>.
+remote: Total <span style="color:#ae81ff">8</span> <span style="color:#f92672">(</span>delta <span style="color:#ae81ff">3</span><span style="color:#f92672">)</span>, reused <span style="color:#ae81ff">6</span> <span style="color:#f92672">(</span>delta <span style="color:#ae81ff">2</span><span style="color:#f92672">)</span>, pack-reused <span style="color:#ae81ff">0</span>
+Unpacking objects: <span style="color:#ae81ff">100</span>% <span style="color:#f92672">(</span><span style="color:#ae81ff">8</span>/8<span style="color:#f92672">)</span>, <span style="color:#00a8c8">done</span>.
+Tapped <span style="color:#ae81ff">4</span> formulae <span style="color:#f92672">(</span><span style="color:#ae81ff">35</span> files, <span style="color:#ae81ff">34</span>.5KB<span style="color:#f92672">)</span>
+Mihos-MacBook:Data miyamam$ brew update
+Already up-to-date.
+Mihos-MacBook:Data miyamam$ brew install --no-sandbox msodbcsql mssql-tools
+<span style="color:#f92672">==</span>&gt; Installing msodbcsql from microsoft/mssql-release
+<span style="color:#f92672">==</span>&gt; Installing dependencies <span style="color:#00a8c8">for</span> microsoft/mssql-release/msodbcsql: libtool, <span style="color:#111">unixodbc</span>
+<span style="color:#f92672">==</span>&gt; Installing microsoft/mssql-release/msodbcsql dependency: <span style="color:#111">libtool</span>
+<span style="color:#f92672">==</span>&gt; Downloading https://homebrew.bintray.com/bottles/libtool-2.4.6_1.high_sierra.bottle.tar.gz
+<span style="color:#75715e">######################################################################## 100.0%
+</span><span style="color:#75715e"></span><span style="color:#f92672">==</span>&gt; Pouring libtool-2.4.6_1.high_sierra.bottle.tar.gz
+<span style="color:#f92672">==</span>&gt; Caveats
+In order to prevent conflicts with Apple<span style="color:#d88200">&#39;s own libtool we have prepended a &#34;g&#34;
+</span><span style="color:#d88200">so, you have instead: glibtool and glibtoolize.
+</span><span style="color:#d88200">==&gt; Summary
+</span><span style="color:#d88200">🍺  /usr/local/Cellar/libtool/2.4.6_1: 71 files, 3.7MB
+</span><span style="color:#d88200">==&gt; Installing microsoft/mssql-release/msodbcsql dependency: unixodbc
+</span><span style="color:#d88200">==&gt; Downloading https://homebrew.bintray.com/bottles/unixodbc-2.3.5_1.high_sierra.bottle.tar.gz
+</span><span style="color:#d88200">######################################################################## 100.0%
+</span><span style="color:#d88200">==&gt; Pouring unixodbc-2.3.5_1.high_sierra.bottle.tar.gz
+</span><span style="color:#d88200">🍺  /usr/local/Cellar/unixodbc/2.3.5_1: 43 files, 1.8MB
+</span><span style="color:#d88200">==&gt; Installing microsoft/mssql-release/msodbcsql
+</span><span style="color:#d88200">==&gt; Downloading http://download.microsoft.com/download/4/9/5/495639C0-79E4-45A7-B65A-B264071C3D9A/msodbcsql-13.1.9.2.tar.gz
+</span><span style="color:#d88200">######################################################################## 100.0%
+</span><span style="color:#d88200">The license terms for this product can be downloaded from
+</span><span style="color:#d88200">https://aka.ms/odbc131eula and found in
+</span><span style="color:#d88200">/usr/local/share/doc/msodbcsql/LICENSE.txt . By entering &#39;</span>YES<span style="color:#d88200">&#39;,
+</span><span style="color:#d88200">you indicate that you accept the license terms.
+</span><span style="color:#d88200">
+</span><span style="color:#d88200">Do you accept the license terms? (Enter YES or NO)
+</span><span style="color:#d88200">YES
+</span><span style="color:#d88200">==&gt; odbcinst -u -d -n &#34;ODBC Driver 13 for SQL Server&#34;
+</span><span style="color:#d88200">==&gt; odbcinst -i -d -f ./odbcinst.ini
+</span><span style="color:#d88200">Warning: Calling &lt;&lt;-EOS.undent is deprecated!
+</span><span style="color:#d88200">Use &lt;&lt;~EOS instead.
+</span><span style="color:#d88200">/usr/local/Homebrew/Library/Taps/microsoft/homebrew-mssql-release/Formula/msodbcsql.rb:16:in `caveats&#39;</span>
+Please report this to the microsoft/mssql-release tap!
+
+Warning: Calling <span style="color:#d88200">&lt;&lt;-EOS.undent is deprecated!
+</span><span style="color:#d88200">Use &lt;&lt;~EOS</span> instead.
+/usr/local/Homebrew/Library/Taps/microsoft/homebrew-mssql-release/Formula/msodbcsql.rb:16:in <span style="color:#d88200">`</span>caveats<span style="color:#d88200">&#39;
+</span><span style="color:#d88200">Please report this to the microsoft/mssql-release tap!
+</span><span style="color:#d88200">
+</span><span style="color:#d88200">==&gt; Caveats
+</span><span style="color:#d88200">If you installed this formula with the registration option (default), you&#39;</span>ll
+need to manually remove <span style="color:#f92672">[</span>ODBC Driver <span style="color:#ae81ff">13</span> <span style="color:#00a8c8">for</span> SQL Server<span style="color:#f92672">]</span> section from
+odbcinst.ini after the formula is uninstalled. This can be <span style="color:#00a8c8">done</span> by executing
+the following command:
+    odbcinst -u -d -n <span style="color:#d88200">&#34;ODBC Driver 13 for SQL Server&#34;</span>
+<span style="color:#f92672">==</span>&gt; Summary
+🍺  /usr/local/Cellar/msodbcsql/13.1.9.2: <span style="color:#ae81ff">9</span> files, <span style="color:#ae81ff">2</span>.6MB, built in <span style="color:#ae81ff">14</span> <span style="color:#111">seconds</span>
+<span style="color:#f92672">==</span>&gt; Installing mssql-tools from microsoft/mssql-release
+<span style="color:#f92672">==</span>&gt; Downloading https://go.microsoft.com/fwlink/?linkid<span style="color:#f92672">=</span><span style="color:#111">848963</span>
+<span style="color:#f92672">==</span>&gt; Downloading from http://download.microsoft.com/download/F/D/1/FD16AA69-F27D-440E-A15A-6C521A1972E6/mssql-tools-14.0.6.0.tar.gz
+<span style="color:#75715e">######################################################################## 100.0%
+</span><span style="color:#75715e"></span>The license terms <span style="color:#00a8c8">for</span> this product can be downloaded from
+http://go.microsoft.com/fwlink/?LinkId<span style="color:#f92672">=</span><span style="color:#ae81ff">746949</span> and found in
+/usr/local/share/doc/mssql-tools/LICENSE.txt . By entering <span style="color:#d88200">&#39;YES&#39;</span>,
+you indicate that you accept the license terms.
+
+Do you accept the license terms? <span style="color:#f92672">(</span>Enter YES or NO<span style="color:#f92672">)</span>
+YES
+🍺  /usr/local/Cellar/mssql-tools/14.0.6.0: <span style="color:#ae81ff">11</span> files, <span style="color:#ae81ff">1</span>.1MB, built in <span style="color:#ae81ff">55</span> seconds
+M</code></pre></div>
+<p>#参考リンク
+- <a href="https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility">sqlcmd Utility</a>
+- <a href="https://github.com/Microsoft/homebrew-mssql-release">Microsoft/homebrew-mssql-release</a>
+- <a href="https://blogs.technet.microsoft.com/dataplatforminsider/2017/05/16/sql-server-command-line-tools-for-macos-released/">SQL Server Command Line Tools for macOS released</a></p>
+
+    </div>
+</section>
+
+            
+                <section class="page" id="vulsonazure">
+    <h1>
+        <a href="#vulsonazure">vuls on Azure 簡易チュートリアル</a>
+    </h1>
+    <div class="content">
+        
+
+<h1 id="はじめに">はじめに</h1>
+
+<p>vuls ご本家のサイトを拝見すると AWS でのデプロイ方法がチュートリアルとして書かれており、Azure でも使えるツールなのにチュートリアルで特定してしまうと、誤解されてしまい Azure での利用がされないことにつながるのは少し勿体ないなと感じていました。
+既に Azure 上で動作させるように確認している先駆者の方もいらっしゃるようだったので、検証作業の内容を備忘録がてら残しておきます。</p>
+
+<p>ご本家にReadmeの日本語版のプルリクエスト出すほどの内容でもないので記事としておいておきますのでご意見あればコメントお願いいたします。</p>
+
+<p>まずは vuls が入ったサーバーのローカルでのスキャンを確認しています。</p>
+
+<h1 id="tutorial-azure-の場合">Tutorial (Azure の場合)</h1>
+
+<ol>
+<li>Tutorial: Local Scan Mode
+
+<ul>
+<li>Launch CentOS on Azure</li>
+<li>Deploy Vuls</li>
+<li>Scan localhost, Reportingv</li>
+</ul></li>
+<li>Tutorial: Remote Scan Mode
+
+<ul>
+<li>Launch Ubuntu Linux on Azure</li>
+<li>このUbuntuを先程セットアップしたVulsからスキャンする
+
+&mdash;-</li>
+</ul></li>
+</ol>
+
+<h1 id="tutorial-local-scan-mode">Tutorial: Local Scan Mode</h1>
+
+<p>本チュートリアルでは、Microsoft Azure に Vuls をセットアップし、自分に存在する脆弱性をスキャンする方法を説明する。
+手順は以下の通り</p>
+
+<ol>
+<li>CentOSを新規作成</li>
+<li>必要なソフトウェアをインストール</li>
+<li>go-cve-dictionaryをデプロイ</li>
+<li>goval-dictionaryをデプロイ</li>
+<li>Vulsをデプロイ</li>
+<li>設定</li>
+<li>設定ファイルと、スキャン対象サーバの設定のチェック</li>
+<li>Scan</li>
+<li>Reporting</li>
+<li>TUI(Terminal-Based User Interface)で結果を参照する</li>
+<li>Web UI(<a href="https://github.com/usiusi360/vulsrepo">VulsRepo</a>)で結果を参照する</li>
+</ol>
+
+<h2 id="step1-launch-centos7">Step1. Launch CentOS7</h2>
+
+<ul>
+<li>Azure の場合は<a href="https://docs.microsoft.com/ja-jp/azure/security/azure-security-best-practices-vms">Azure VM のセキュリティのベスト プラクティス</a>
+にあるようにAzure Market Place 上で提供されている仮想マシンイメージは既定で自動更新が実行されるため、古い脆弱性を含む仮想マシンイメージを明示的に選択して実行するのは難しいです。(ご自身で、古い仮想マシンイメージをアップロードし、これをテンプレート使用する場合はこの限りではございません。)</li>
+</ul>
+
+<blockquote>
+<p>Azure Marketplace の一部として提供されるイメージは常に、既定で自動更新が実行されます
+引用元：<a href="https://docs.microsoft.com/ja-jp/azure/security/azure-security-best-practices-vms">Azure VM のセキュリティのベスト プラクティス</a></p>
+</blockquote>
+
+<p>###仮想マシン作成の手順（ポータルの場合）
+Azure Portal の画面から右上の<strong>＋新規</strong>をクリックし、CentOS と入力します。Azure Market Placeにあるイメージがたくさん表示されるのですが、<strong>CentOS-based 7.3</strong> とあるもの（OpenLogicさんのイメージ）を選択し<strong>作成</strong>をクリックします。
+作成方法は基本的に好みになるのですが、ユニークな<strong>名前</strong>と<strong>認証の種類（手持ちのSSH証明書を設定するのか、パスワード認証にするのか）とその設定</strong>、<strong>リソースグループ</strong>(運用管理の単位になります)を設定することが必須になります。
+<em>sheetaというユーザーで実行しています。</em></p>
+
+<p>作成後に、ネットワークセキュリティグループ(デフォルトでは<strong>仮想マシン名-NSG</strong>)の<strong>送信セキュリティ規則</strong>に(http用の)tcp/80の設定を追加しておきます。
+<em>検証では、DSv3 インスタンスで実行しました。</em></p>
+
+<h2 id="step2-install-requirements">Step2. Install requirements</h2>
+
+<p>Vulsセットアップに必要な以下のソフトウェアをインストールする。</p>
+
+<ul>
+<li>SQLite3, MySQL, PostgreSQL or Redis</li>
+<li>git</li>
+<li>gcc</li>
+<li>GNU Make</li>
+<li>go v1.8.3 or later (The latest version is recommended)
+
+<ul>
+<li><a href="https://golang.org/doc/install">https://golang.org/doc/install</a>
+執筆時（2018/01/15の最新版は 1.9.2 です。Slackで動作実績を確認したので今回は最新版を使用することにします。）</li>
+</ul></li>
+</ul>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo yum -y install sqlite git gcc make wget
+$ wget https://storage.googleapis.com/golang/go1.9.2.linux-amd64.tar.gz
+$ sudo tar -C /usr/local -xzf go1.9.2.linux-amd64.tar.gz
+$ mkdir <span style="color:#111">$HOME</span>/go</code></pre></div>
+<p>/etc/profile.d/goenv.sh を作成し、下記を追加する。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#111">export</span> <span style="color:#111">GOROOT</span><span style="color:#f92672">=</span>/usr/local/go
+<span style="color:#111">export</span> <span style="color:#111">GOPATH</span><span style="color:#f92672">=</span><span style="color:#111">$HOME</span>/go
+<span style="color:#111">export</span> <span style="color:#111">PATH</span><span style="color:#f92672">=</span><span style="color:#111">$PATH</span>:<span style="color:#111">$GOROOT</span>/bin:<span style="color:#111">$GOPATH</span>/bin</code></pre></div>
+<p>細かい設定、面倒だったのでこちらの書き方でやりました。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#環境変数の定義
+</span><span style="color:#75715e"></span>sudo sh -c <span style="color:#d88200">&#39;echo &#34;export GOROOT=/usr/local/go&#34; &gt;&gt; /etc/profile.d/goenv.sh&#39;</span>
+sudo sh -c <span style="color:#d88200">&#39;echo &#34;export GOPATH=\$HOME/go&#34; &gt;&gt; /etc/profile.d/goenv.sh&#39;</span>
+sudo sh -c <span style="color:#d88200">&#39;echo &#34;export PATH=\$PATH:\$GOROOT/bin:\$GOPATH/bin&#34; &gt;&gt; /etc/profile.d/goenv.sh&#39;</span>
+<span style="color:#111">source</span> /etc/profile.d/goenv.sh</code></pre></div>
+<p>カレントシェルに上記環境変数をセットする。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ <span style="color:#111">source</span> /etc/profile.d/goenv.sh</code></pre></div>
+<h2 id="step3-deploy-go-cve-dictionary">Step3. Deploy go-cve-dictionary</h2>
+
+<p><a href="https://github.com/kotakanbe/go-cve-dictionary">go-cve-dictionary</a></p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo mkdir /var/log/vuls
+$ sudo chown sheeta /var/log/vuls
+$ sudo chmod <span style="color:#ae81ff">700</span> /var/log/vuls
+$
+$ mkdir -p <span style="color:#111">$GOPATH</span>/src/github.com/kotakanbe
+$ <span style="color:#111">cd</span> <span style="color:#111">$GOPATH</span>/src/github.com/kotakanbe
+$ git clone https://github.com/kotakanbe/go-cve-dictionary.git
+$ <span style="color:#111">cd</span> go-cve-dictionary
+$ make install</code></pre></div>
+<p>バイナリは、<code>$GOPATH/bin</code>以下に生成される
+もしもインストールプロセスが途中で止まる場合は、Out of memory errorが発生している可能性があるので、インスタンスタイプを大きくして再実行してみてください。</p>
+
+<p>NVDから脆弱性データベースを取得する。<br />
+環境によって異なるが、AWS上では10分程度かかる。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ <span style="color:#111">cd</span> <span style="color:#111">$HOME</span>
+$ <span style="color:#00a8c8">for</span> i in <span style="color:#d88200">`</span>seq <span style="color:#ae81ff">2002</span> <span style="color:#00a8c8">$(</span>date +<span style="color:#d88200">&#34;%Y&#34;</span><span style="color:#00a8c8">)</span><span style="color:#d88200">`</span><span style="color:#111">;</span> <span style="color:#00a8c8">do</span> go-cve-dictionary fetchnvd -years <span style="color:#111">$i</span><span style="color:#111">;</span> <span style="color:#00a8c8">done</span>
+... snip ...
+$ ls -alh cve.sqlite3
+#更新日付が新しくなっていることを確認します。</code></pre></div>
+<p>脆弱性レポートを日本語化したい場合は、JVNから脆弱性データベースを取得する。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ <span style="color:#111">cd</span> <span style="color:#111">$HOME</span>
+$ <span style="color:#00a8c8">for</span> i in <span style="color:#d88200">`</span>seq <span style="color:#ae81ff">1998</span> <span style="color:#00a8c8">$(</span>date +<span style="color:#d88200">&#34;%Y&#34;</span><span style="color:#00a8c8">)</span><span style="color:#d88200">`</span><span style="color:#111">;</span> <span style="color:#00a8c8">do</span> go-cve-dictionary fetchjvn -years <span style="color:#111">$i</span><span style="color:#111">;</span> <span style="color:#00a8c8">done</span></code></pre></div>
+<h2 id="step4-deploy-goval-dictionary">Step4. Deploy goval-dictionary</h2>
+
+<p><a href="https://github.com/kotakanbe/goval-dictionary">goval-dictionary</a></p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ mkdir -p <span style="color:#111">$GOPATH</span>/src/github.com/kotakanbe
+$ <span style="color:#111">cd</span> <span style="color:#111">$GOPATH</span>/src/github.com/kotakanbe
+$ git clone https://github.com/kotakanbe/goval-dictionary.git
+$ <span style="color:#111">cd</span> goval-dictionary
+$ make install</code></pre></div>
+<p>The binary was built under <code>$GOPATH/bin</code>
+もしもインストールプロセスが途中で止まる場合は、Out of memory errorが発生している可能性があるので、インスタンスタイプを大きくして再実行してみてください。</p>
+
+<p>今回はCentOSがスキャン対象なので、RedHatが公開しているOVAL情報を取り込む. <a href="https://github.com/kotakanbe/goval-dictionary#usage-fetch-oval-data-from-redhat">README</a></p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ goval-dictionary fetch-redhat <span style="color:#ae81ff">7</span></code></pre></div>
+<p>今回はスキャン対象がCentOS 7なので、RedHat 7のOVALを取得している。
+他の種類のOSをスキャンする場合は以下を参照し、スキャン対象用のOVALを取得しておくこと
+- <a href="https://github.com/kotakanbe/goval-dictionary#usage-fetch-alpine-secdb-as-oval-data-type">Alpine</a>
+- <a href="https://github.com/kotakanbe/goval-dictionary#usage-fetch-oval-data-from-redhat">RedHat, CentOS</a>
+- <a href="https://github.com/kotakanbe/goval-dictionary#usage-fetch-oval-data-from-debian">Debian</a>
+- <a href="https://github.com/kotakanbe/goval-dictionary#usage-fetch-oval-data-from-ubuntu">Ubuntu</a>
+- <a href="https://github.com/kotakanbe/goval-dictionary#usage-fetch-oval-data-from-oracle">Oracle Linux</a>
+- <a href="https://github.com/kotakanbe/goval-dictionary#usage-fetch-oval-data-from-suse">SUSE</a></p>
+
+<h2 id="step5-deploy-vuls">Step5. Deploy Vuls</h2>
+
+<p>新規にターミナルを起動し、先ほど作成した仮想マシンにSSH接続する。</p>
+
+<pre><code>$ mkdir -p $GOPATH/src/github.com/future-architect
+$ cd $GOPATH/src/github.com/future-architect
+$ git clone https://github.com/future-architect/vuls.git
+$ cd vuls
+$ make install
+</code></pre>
+
+<p>The binary was built under <code>$GOPATH/bin</code>
+もしもインストールプロセスが途中で止まる場合は、Out of memory errorが発生している可能性があるので、インスタンスタイプを大きくして再実行してみてください。</p>
+
+<p>もし、あなたが以前にvulsをインストールしていて update をする場合は以下を実施してください。</p>
+
+<pre><code>$ rm -rf  $GOPATH/pkg/linux_amd64/github.com/future-architect/vuls/
+$ rm -rf  $GOPATH/src/github.com/future-architect/vuls/
+$ cd $GOPATH/src/github.com/future-architect
+$ git clone https://github.com/future-architect/vuls.git
+$ cd vuls
+$ make install
+</code></pre>
+
+<h2 id="step6-config">Step6. Config</h2>
+
+<p>Vulsの設定ファイルを作成する（TOMLフォーマット）</p>
+
+<pre><code>$ cd $HOME
+$ cat config.toml
+[servers]
+
+[servers.localhost]
+host = &quot;localhost&quot;
+port = &quot;local&quot;
+</code></pre>
+
+<p>こちらの書き方でやりました。</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Bash" data-lang="Bash"><span style="color:#75715e">#Configを作成
+</span><span style="color:#75715e"></span><span style="color:#111">echo</span> <span style="color:#d88200">&#39;[servers]&#39;</span> &gt;&gt; config.toml
+<span style="color:#111">echo</span> <span style="color:#d88200">&#39;[servers.localhost]&#39;</span> &gt;&gt; config.toml
+<span style="color:#111">echo</span> <span style="color:#d88200">&#39;host         = &#34;localhost&#34;&#39;</span> &gt;&gt; config.toml
+<span style="color:#111">echo</span> <span style="color:#d88200">&#39;port        = &#34;local&#34;&#39;</span> &gt;&gt; config.toml</code></pre></div>
+<h2 id="step7-check-config-toml-and-settings-on-the-server-before-scanning">Step7. Check config.toml and settings on the server before scanning</h2>
+
+<pre><code>$ vuls configtest
+</code></pre>
+
+<p>詳細は <a href="#usage-configtest">Usage: configtest</a> を参照</p>
+
+<h2 id="step8-start-scanning">Step8. Start Scanning</h2>
+
+<pre><code>[sheeta@rapyuta ~]$ vuls scan
+[Jan 16 11:43:56]  INFO [localhost] Start scanning
+[Jan 16 11:43:56]  INFO [localhost] config: /home/sheeta/config.toml
+[Jan 16 11:43:56]  INFO [localhost] Validating config...
+[Jan 16 11:43:56]  INFO [localhost] Detecting Server/Container OS... 
+[Jan 16 11:43:56]  INFO [localhost] Detecting OS of servers... 
+[Jan 16 11:43:56]  INFO [localhost] (1/1) Detected: localhost: centos 7.3.1611
+[Jan 16 11:43:56]  INFO [localhost] Detecting OS of containers... 
+[Jan 16 11:43:56]  INFO [localhost] Detecting Platforms... 
+[Jan 16 11:43:56]  INFO [localhost] (1/1) localhost is running on other
+[Jan 16 11:43:56]  INFO [localhost] Scanning vulnerabilities... 
+[Jan 16 11:43:56]  INFO [localhost] Scanning vulnerable OS packages...
+
+
+One Line Summary
+================
+localhost	centos7.3.1611	0 updatable packages
+
+
+
+
+To view the detail, vuls tui is useful.
+To send a report, run vuls report -h.
+</code></pre>
+
+<h2 id="step9-reporting">Step9. Reporting</h2>
+
+<p>View one-line summary</p>
+
+<pre><code>[sheeta@rapyuta ~]$ vuls report -lang=ja -format-one-line-text -cvedb-path=$PWD/cve.sqlite3 -ovaldb-path=$PWD/oval.sqlite3
+[Jan 16 11:45:25]  INFO [localhost] Validating config...
+[Jan 16 11:45:25]  INFO [localhost] cve-dictionary: /home/sheeta/cve.sqlite3
+[Jan 16 11:45:25]  INFO [localhost] Loaded: /home/sheeta/results/2018-01-16T11:43:56Z
+[Jan 16 11:45:25]  INFO [localhost] Fill CVE detailed information with OVAL
+[Jan 16 11:45:25]  WARN [localhost] OVAL entries of redhat 7.3.1611 are not found. It's recommended to use OVAL to improve scanning accuracy. For details, see https://github.com/kotakanbe/goval-dictionary#usage , Then report with --ovaldb-path or --ovaldb-url flag
+[Jan 16 11:45:25]  INFO [localhost] Fill CVE detailed information with CVE-DB
+
+
+One Line Summary
+================
+localhost	Total: 0 (High:0 Medium:0 Low:0 ?:0)	0 updatable packages
+</code></pre>
+
+<p>View short summary.</p>
+
+<p>こんな感じでできました。
+アップデートが存在するVMがスキャンできなかったため、正確な結果になっているかどうかわかりませんが、どなたかのお役に立てば幸いです。</p>
+
+<p>参考リンク：
+<a href="https://github.com/future-architect/vuls/tree/master/setup/docker">vuls</a>
+<a href="http://level69.net/archives/24683">AzureにVulsをインストールしてみる。コピペでどーん。</a>
+<em>くどじゅんさん、参考になりました！</em></p>
+
+    </div>
+</section>
+
+            
+                <section class="page" id="kojirase">
+    <h1>
+        <a href="#kojirase">こじらせメーターのつくりかた</a>
+    </h1>
+    <div class="content">
+        
+
+<p>#はじめに
+twitter でのフォロアーさんとのやりとりで、こじらせ度合いも可視化しないといけないなという話になり、どうせならハッシュタグ<strong>#kojimeter</strong> つきのツイートを数値化し、集計して可視化するものを Logic Apps で簡単につくることができたので備忘録がてら残しておきます。
+（自分宛のMentionっていう条件は、修正時に外しています。）</p>
+
+<p>#概要</p>
+
+<h2 id="利用したサービス">利用したサービス</h2>
+
+<ul>
+<li>Cosmos DB (選定理由は後述）</li>
+<li>Cognitive Services
+
+<ul>
+<li>Text Analytics API</li>
+</ul></li>
+<li>Logic Apps</li>
+</ul>
+
+<h2 id="cosmos-db">Cosmos DB</h2>
+
+<p>なぜ Cosmos DB を使っているのかというと、今回の用途からテーブル設計するような内容でもなく、複数のテーブルでリレーションシップを使うものではなく、単に非構造化データをストアしておきたいというだけだったからです。なお、データストアの選択については参考リンクに貼った<a href="https://docs.microsoft.com/ja-jp/azure/architecture/guide/technology-choices/data-store-comparison">データ ストアの選択条件</a>が参考になります。</p>
+
+<p>今回は、ポータルから作成し、SQLを選びました。特に既存のシステムからの移行ではないしアプリ側（Logic Appsなのでそれすら存在しない）に特定のNoSQLの接続設定があるわけでもないためです。
+Collectionも適当に作成しています。
+<img width="867" alt="Screen Shot 2018-01-14 at 12.27.47.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/f9a7b039-4c87-9acd-90e0-c08d87aecbe7.png"></p>
+
+<h2 id="cognitive-services-text-analytics-api">Cognitive Services Text Analytics API</h2>
+
+<p>今回、悩んだのが作成時（2018年1月14日）現在ではText Analytics API のセンチメント分析は日本語をサポートしていません。</p>
+
+<p><a href="https://docs.microsoft.com/ja-jp/azure/cognitive-services/text-analytics/text-analytics-supported-languages">Supported languages in Text Analytics API</a></p>
+
+<p>なので、対応言語に一度変換するというステップが入ります。でも、Logic Appsなら簡単にできます。ここは今後無くなるかもしれないステップということになります。
+こちらもポータルから作成します。手順は迷うこと無いと思いますが<a href="https://docs.microsoft.com/en-us/powerapps/cognitive-services-api#sign-up-for-the-text-analytics-api">Sign up for the Text Analytics API</a>こちらと同様に作成します。（既に作ってあったので途中の画面は割愛。Logic Apps で使用するので、Show access keysからキーを参照してメモしておきます。）
+<img width="860" alt="Screen Shot 2018-01-14 at 12.43.42.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/d9e48852-f681-d759-b9aa-5532e81e308c.png"></p>
+
+<p>##Logic Apps
+ポータルから作成します。こちらのドキュメントが参考になると思います。<a href="https://docs.microsoft.com/ja-jp/azure/logic-apps/logic-apps-create-a-logic-app">ロジック アプリでデータを処理するための初めてのワークフローの自動化</a>
+今回作った処理は下記の図のようになります。
+<img width="870" alt="Screen Shot 2018-01-14 at 12.48.39.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/e22c0fd0-c698-cf3b-4178-fbab1bcaf3f6.png">
+詳細をひとつひとつ見ていくと</p>
+
+<p>###ハッシュタグつきツイートが来たら（トリガー）
+<img width="598" alt="Screen Shot 2018-01-14 at 12.50.35.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/0319ffc8-62dc-14a0-490d-dac9aa17e64a.png"></p>
+
+<p>###ツイート内容を英語に翻訳して
+<img width="596" alt="Screen Shot 2018-01-14 at 12.51.49.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/6e82b1eb-dd28-1247-858f-ff80506847ef.png"></p>
+
+<p>###感情を検出して
+<img width="597" alt="Screen Shot 2018-01-14 at 12.52.48.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/0da01981-b950-1255-c546-9139042e3163.png">
+翻訳したツイート内容から感情を検出します。</p>
+
+<p>###Cosmos DB にインサートします。<img width="478" alt="Screen Shot 2018-01-14 at 12.53.53.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/24b98d0a-d3e6-946f-7e6d-48c649b99caf.png">
+ポイントはインサートする際に、ユニークなidが必要となるのですが、ここは自動生成する関数<strong>guid()</strong>をいれています。</p>
+
+<blockquote>
+<table>
+<thead>
+<tr>
+<th align="left">guid</th>
+<th align="right">この関数は、グローバルに一意の文字列 (GUID) を生成します。 たとえば、次の関数は c2ecc88d-88c8-4096-912c-d6f2e2b138ce という GUID を生成できます。</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left">guid()</td>
+<td align="right"></td>
+</tr>
+
+<tr>
+<td align="left"></td>
+<td align="right"></td>
+</tr>
+
+<tr>
+<td align="left">パラメーター番号: 1</td>
+<td align="right"></td>
+</tr>
+
+<tr>
+<td align="left"></td>
+<td align="right"></td>
+</tr>
+
+<tr>
+<td align="left">名前: Format</td>
+<td align="right"></td>
+</tr>
+
+<tr>
+<td align="left"></td>
+<td align="right"></td>
+</tr>
+
+<tr>
+<td align="left">説明: 省略可能。 この GUID の値の書式設定方法を示す単一の書式設定指定子です。 指定できる書式設定パラメーターは、&rdquo;N&rdquo;、&rdquo;D&rdquo;、&rdquo;B&rdquo;、&rdquo;P&rdquo;、&rdquo;X&rdquo; です。 指定しないと、&rdquo;D&rdquo; が使われます。</td>
+<td align="right"></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+
+<p>###最後に完了ツイートを投稿します。
+<img width="598" alt="Screen Shot 2018-01-14 at 12.59.58.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/8195d5b5-90c9-30f2-ae60-dd517229aaed.png"></p>
+
+<p>実際にストアされたデータを見るとこんな感じになっています。
+<img width="1033" alt="Screen Shot 2018-01-14 at 13.02.47.png" src="https://qiita-image-store.s3.amazonaws.com/0/135357/742f2749-0ac7-fb62-5d50-5f3178e6a968.png">
+作成時に指定した意外に、&rdquo;-rid&rdquo;,&rdquo;_self&rdquo;,&rdquo;_etag&rdquo;,&rdquo;_attachments&rdquo;,&rdquo;_ts&rdquo;が付加されていますが、これらはCosmos DB側で付加しているものです。
+&gt;| Properties of Document |
+|:&ndash;|:&ndash;|
+|  |
+| Property | Description |
+| id | This is the unique name that identifies the document, i.e. no two documents can share the same id. The id must not exceed 255 characters. |
+| <custom> | Any user-defined JSON. |
+| _rid | This is a system generated property. The resource ID (_rid) is a unique identifier that is also hierarchical per the resource stack on the resource model. It is used internally for placement and navigation of the document resource. |
+| _ts | This is a system generated property. It specifies the last updated timestamp of the resource. The value is a timestamp. |
+| _self | This is a system generated property. It is the unique addressable URI for the resource. |
+| _etag | This is a system generated property that specifies the resource etag required for optimistic concurrency control. |
+| _attachments | This is a system generated property that specifies the addressable path for the attachments resource. |</p>
+
+<p><a href="https://docs.microsoft.com/en-us/rest/api/documentdb/query-documents">Properties of Document</a></p>
+
+<p>#結論
+ちょっとした作業やロジックを組むのであれば、Logic Appsはとても便利なツールです。コーディングレス、サーバーレスなのでソースコードを書く必要もありません。とても簡単なUIなので、ぜひ一度ご利用くださいませ。</p>
+
+<p>#課題
+スコアは蓄積したものの、可視化のプロセスをどうしようか悩み中です。Logic Appsでツイートさせるもよし。PowerBIでグラフにするもよし。いいアイデアあれば是非くださいませ。</p>
+
+<p>##参考リンク
+<a href="https://docs.microsoft.com/ja-jp/azure/cosmos-db/">Azure Cosmos DB のドキュメント</a>
+<a href="https://docs.microsoft.com/ja-jp/azure/architecture/guide/technology-choices/data-store-comparison">データ ストアの選択条件</a>
+<a href="https://docs.microsoft.com/ja-jp/azure/cognitive-services/text-analytics/text-analytics-supported-languages">Supported languages in Text Analytics API</a>
+<a href="https://docs.microsoft.com/en-us/powerapps/cognitive-services-api#sign-up-for-the-text-analytics-api">Sign up for the Text Analytics API</a>
+<a href="https://docs.microsoft.com/ja-jp/azure/logic-apps/logic-apps-create-a-logic-app">ロジック アプリでデータを処理するための初めてのワークフローの自動化</a>
+<a href="https://docs.microsoft.com/ja-jp/azure/logic-apps/logic-apps-workflow-definition-language">Azure Logic Apps のワークフロー定義言語スキーマ</a>
+<a href="https://docs.microsoft.com/en-us/rest/api/documentdb/query-documents">Properties of Document</a></p>
+
+    </div>
+</section>
+
             
                 <section class="page" id="sqldbaccess">
     <h1>
